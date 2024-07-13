@@ -1,0 +1,55 @@
+<?php
+
+namespace App\Http\Controllers\ApiControllers\auth_controllers;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
+
+class LoginController extends Controller
+{
+    public function userLogin(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required',
+            'password' => 'required'
+        ], [
+            'email.required' => 'الرجاء إرسال الايميل',
+            'password.required' => 'الرجاء إرسال كلمة المرور',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first()
+            ], 422);
+        }
+
+        $credentials = $validator->validated();
+
+        if (Auth::attempt($credentials)) {
+            // return $request->user();
+            $token = $request->user()->createToken('api-token')->plainTextToken;
+            // $user = Auth::user(); // Retrieve the authenticated user
+            // $user2 = User::where('email', $request->email)->first();
+            // return [$user, $user2];
+            // $token = $user->createToken('api-token')->plainTextToken;
+
+            // $user = Auth::user();
+            // $token = $user->createToken('api-token')->plainTextToken;
+            return response([
+                'status' => true,
+                'message' => 'تم تسجيل الدخول بنجاح',
+                'user' => auth()->user(),
+                'token' => $token,
+            ], 200);
+        } else {
+            return response([
+                'status' => false,
+                'message' => 'الرجاء التأكد من البيانات المدخلة'
+            ], 401);
+        }
+    }
+}
