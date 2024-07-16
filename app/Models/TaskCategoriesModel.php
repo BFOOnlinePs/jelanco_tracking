@@ -9,6 +9,6 @@ class TaskCategoriesModel extends Model
 {
     use HasFactory;
     protected $table = 'task_categories';
-    protected $primary_key = 'c_id';
+    protected $primaryKey = 'c_id';
 
 }
