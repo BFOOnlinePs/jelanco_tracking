@@ -32,4 +32,6 @@ class TaskModel extends Model
     {
         return $this->belongsTo(User::class, 't_added_by', 'id');
     }
+
+
 }

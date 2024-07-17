@@ -4,9 +4,10 @@ namespace App\Http\Controllers\ApiControllers\task_controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\TaskModel;
+use App\Models\TaskSubmissionCommentsModel;
+use App\Models\TaskSubmissionsModel;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class TaskController extends Controller
@@ -19,51 +20,46 @@ class TaskController extends Controller
         return $tasks;
     }
 
-    public function getTasksAddedByUser()
+    public function getTaskWithSubmissionsAndComments($id)
     {
-        $user_id = auth()->user()->id;
-        $tasks = TaskModel::where('t_added_by', $user_id)
-            ->with('taskCategory:c_id,c_name')
-            ->orderBy('created_at', 'desc')
-            ->paginate(6);
-
-        $tasks->transform(function ($task) {
-            $user_ids = json_decode($task->t_assigned_to);
-            $temp_users = User::whereIn('id', $user_ids)->select('id', 'name')->get();
-            $task->assigned_to_users = $temp_users;
-            return $task;
-        });
-
-        return response()->json([
-            'status' => true,
-            'pagination' => [
-                'current_page' => $tasks->currentPage(),
-                'last_page' => $tasks->lastPage(),
-                'per_page' => $tasks->perPage(),
-                'total_items' => $tasks->total(),
-            ],
-            'tasks' => $tasks->values(),
-        ]);
-    }
-
-    public function getTasksAssignedToUser()
-    {
-        $userId = auth()->user()->id;
-        $tasks = TaskModel::whereJsonContains('t_assigned_to', (string)$userId)
+        $task = TaskModel::where('t_id', $id)
             ->with('taskCategory:c_id,c_name')
             ->with('addedByUser:id,name')
-            ->orderBy('created_at', 'desc')
-            ->paginate(6);
+            ->first();
+
+        if ($task) {
+            $task->task_submissions = TaskSubmissionsModel::where('ts_task_id', $id)->get();
+            $task->assigned_to_users = User::whereIn('id', json_decode($task->t_assigned_to))->select('id', 'name')->get();
+            $task->task_submissions->transform(function ($submission) {
+                // to get the submitter user
+                $user_id = $submission->ts_submitter;
+                $user = User::where('id', $user_id)->select('id', 'name')->first();
+                $submission->submitter_user = $user;
+
+                // to get the task submission comments
+                $submission->submission_comments = TaskSubmissionCommentsModel::where('tsc_task_submission_id', $submission->ts_id)->get();
+                $submission->submission_comments->transform(function ($comment) {
+                    $comment->commented_by_user = User::where('id', $comment->tsc_commented_by)->select('id', 'name')->first();
+                    return $comment;
+                });
+                return $submission;
+            });
+            // $task->comments = $task->comments;
+
+            // $user_ids = json_decode($task->t_assigned_to);
+            // $temp_users = User::whereIn('id', $user_ids)->select('id', 'name')->get();
+            // $task->assigned_to_users = $temp_users;
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'The Task is not exists',
+            ]);
+        }
 
         return response()->json([
+
             'status' => true,
-            'pagination' => [
-                'current_page' => $tasks->currentPage(),
-                'last_page' => $tasks->lastPage(),
-                'per_page' => $tasks->perPage(),
-                'total_items' => $tasks->total(),
-            ],
-            'tasks' => $tasks->values(),
+            'task' => $task,
         ]);
     }
 
