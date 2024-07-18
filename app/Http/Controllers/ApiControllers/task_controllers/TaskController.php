@@ -67,10 +67,10 @@ class TaskController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'content' => 'required',
+            'assigned_to' => 'required',
             'start_time' => 'nullable',
             'end_time' => 'nullable',
             'category_id' => 'nullable|exists:task_categories,c_id',
-            'assigned_to' => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -81,10 +81,10 @@ class TaskController extends Controller
         }
 
         $auth_id = auth()->user()->id;
-
+// return  $request->input('start_time');
         $task = new TaskModel();
         $task->t_content = $request->input('content');
-        $task->t_planed_start_time = $request->input('start_time');
+        $task->t_planed_start_time = $request->input('start_time') ;
         $task->t_planed_end_time = $request->input('end_time');
         $task->t_status = 'active'; // default
         $task->t_category_id = $request->input('category_id');
