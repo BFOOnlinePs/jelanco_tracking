@@ -7,13 +7,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class TaskSubmissionController extends Controller
-{
+{  
     public function addTaskSubmission(Request $request){
         $validator = Validator::make($request->all(), [
            'task_id' => 'required|exists:tasks,t_id',
            'content' => 'required',
            'file' => 'nullable|mimes:png,jpg,jpeg,pdf', //
-           'status' => 'required|in:active,notActive'
+        //    'status' => 'required|in:active,notActive'
 
         ]);
 

@@ -30,15 +30,8 @@ class LoginController extends Controller
         $credentials = $validator->validated();
 
         if (Auth::attempt($credentials)) {
-            // return $request->user();
             $token = $request->user()->createToken('api-token')->plainTextToken;
-            // $user = Auth::user(); // Retrieve the authenticated user
-            // $user2 = User::where('email', $request->email)->first();
-            // return [$user, $user2];
-            // $token = $user->createToken('api-token')->plainTextToken;
 
-            // $user = Auth::user();
-            // $token = $user->createToken('api-token')->plainTextToken;
             return response([
                 'status' => true,
                 'message' => 'تم تسجيل الدخول بنجاح',

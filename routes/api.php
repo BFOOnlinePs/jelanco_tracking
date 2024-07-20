@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ApiControllers\auth_controllers\LoginController;
+use App\Http\Controllers\ApiControllers\auth_controllers\LogoutController;
 use App\Http\Controllers\ApiControllers\auth_controllers\SignupController;
 use App\Http\Controllers\ApiControllers\task_category_controllers\TaskCategoryController;
 use App\Http\Controllers\ApiControllers\task_controllers\TaskAssignmentController;
@@ -25,6 +26,8 @@ Route::post('register', [SignupController::class, 'signUp']);
 
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
+    Route::post('logout', [LogoutController::class, 'logout']);
+
     Route::get('tasks', [TaskController::class, 'getAllTasks']);
     // Route::get('tasks/{id}', [TaskController::class, 'getTask']);
     Route::get('tasks/{id}/submissions-and-comments', [TaskController::class, 'getTaskWithSubmissionsAndComments']);
@@ -36,4 +39,5 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('task-categories', [TaskCategoryController::class, 'getTaskCategories']);
 
     Route::get('users', [userController::class, 'getAllUsers']);
+
 });
