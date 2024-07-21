@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\ApiControllers\task_submission_controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\AttachmentsModel;
 use App\Models\TaskSubmissionsModel;
 use App\Services\FileUploadService;
 use Carbon\Carbon;
@@ -19,6 +20,22 @@ class TaskSubmissionController extends Controller
         $this->fileUploadService = $fileUploadService;
     }
 
+    private function handleAttachmentsUpload($files, $task_submission, $type)
+    {
+        foreach ($files as $file) {
+            $attachment = new AttachmentsModel();
+            $folderPath = 'uploads';
+            $file_name = $this->fileUploadService->uploadFile($file, $folderPath);
+
+            $attachment->a_table = 'task_submissions';
+            $attachment->a_fk_id = $task_submission->ts_id;
+            $attachment->a_attachment = $file_name;
+            $attachment->a_user_id = auth()->user()->id;
+
+            $attachment->save();
+        }
+    }
+
     public function addTaskSubmission(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -27,6 +44,14 @@ class TaskSubmissionController extends Controller
             'content' => 'required',
             'start_latitude' => 'required',
             'start_longitude' => 'required',
+            'images.*' => 'image|mimes:jpg,png,jpeg,gif,svg',
+            'videos.*' => 'mimetypes:video/avi,video/mp4,video/mpeg,video/quicktime',
+            'documents.*' => 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx',
+        ], [
+            'images.*.image' => 'يجب اني يكون الملف نوعه صورة',
+            'images.*.mimes' => 'يجب ان يكون نوع الصور: jpg, jpeg, png, gif, svg.',
+            'videos.*.mimetypes' => 'يجب أن يكون نوع الفيديو أحد الأنواع التالية: avi, mp4, mpeg, quicktime.',
+            'documents.*.mimes' => 'يجب أن يكون نوع الملفات أحد الأنواع التالية: pdf, doc, docx, xls, xlsx, ppt, pptx.',
         ]);
 
         if ($validator->fails()) {
@@ -52,8 +77,17 @@ class TaskSubmissionController extends Controller
 
         if ($task_submission->save()) {
             // add the media ...
+            if ($request->hasFile('images')) {
+                $this->handleAttachmentsUpload($request->images, $task_submission, 'images');
+            }
 
-            //$file_name = $this->fileUploadService->uploadFile($request->file('p_video'), 'posts/videos');
+            if ($request->hasFile('videos')) {
+                $this->handleAttachmentsUpload($request->videos, $task_submission, 'videos');
+            }
+
+            if ($request->hasFile('documents')) {
+                $this->handleAttachmentsUpload($request->documents, $task_submission, 'documents');
+            }
 
             return response()->json([
                 'status' => true,
