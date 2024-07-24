@@ -42,6 +42,10 @@ class TaskController extends Controller
                     $comment->commented_by_user = User::where('id', $comment->tsc_commented_by)->select('id', 'name')->first();
                     return $comment;
                 });
+
+                // to get task media (images + videos + files)
+
+
                 return $submission;
             });
             // $task->comments = $task->comments;
