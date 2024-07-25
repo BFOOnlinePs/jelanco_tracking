@@ -4,7 +4,7 @@ import {useEffect} from "react";
 export default function Dashboard(){
     const {setTitle} = useTitleContext();
     useEffect(() => {
-        setTitle('Dashboard')
+        setTitle('الرئيسية')
     }, [setTitle]);
     return (
         <>
