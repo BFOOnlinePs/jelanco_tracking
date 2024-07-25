@@ -56,7 +56,7 @@ class TaskSubmissionController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'status' => true,
+                'status' => false,
                 'message' => $validator->errors()->first(),
             ], 422);
         }
@@ -66,8 +66,8 @@ class TaskSubmissionController extends Controller
         $start_time = Carbon::now();
 
         $task_submission = new TaskSubmissionsModel();
-        $task_submission->ts_parent_id = $request->input('parent_id');
-        $task_submission->ts_task_id = $request->input('task_id');
+        $task_submission->ts_parent_id = (int) $request->input('parent_id');
+        $task_submission->ts_task_id = (int) $request->input('task_id');
         $task_submission->ts_submitter = $submitter;
         $task_submission->ts_content = $request->input('content');
         $task_submission->ts_start_latitude = $request->input('start_latitude');

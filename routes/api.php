@@ -8,7 +8,6 @@ use App\Http\Controllers\ApiControllers\task_controllers\TaskAssignmentControlle
 use App\Http\Controllers\ApiControllers\task_controllers\TaskController;
 use App\Http\Controllers\ApiControllers\task_submission_controllers\TaskSubmissionController;
 use App\Http\Controllers\ApiControllers\user_controllers\userController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -41,6 +40,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // tasks submissions
     Route::post('task-submissions', [TaskSubmissionController::class, 'addTaskSubmission']);
 
+    // task categories
     Route::get('task-categories', [TaskCategoryController::class, 'getTaskCategories']);
 
     Route::get('users', [userController::class, 'getAllUsers']);
