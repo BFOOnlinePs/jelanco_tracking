@@ -7,7 +7,7 @@ const TitleContext = createContext({
 });
 
 export const TitleProvider = ({ children }) => {
-    const [title, setTitle] = useState('Top Navigation Example 3.0');
+    const [title, setTitle] = useState('الرئيسية');
 
     return (
         <TitleContext.Provider value={{ title, setTitle }}>

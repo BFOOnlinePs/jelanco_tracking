@@ -1,11 +1,10 @@
 // Content.jsx
 import { Outlet } from 'react-router-dom';
 import {useTitleContext} from "../contexts/TitleContext.jsx";
-import React from 'react';
+import React, {useEffect} from 'react';
 
 export default function Content() {
-    const { title } = useTitleContext();
-
+    const { title, setTitle } = useTitleContext();
     return (
         <div className="content-wrapper">
             <div className="content-header">
@@ -23,7 +22,7 @@ export default function Content() {
 
             <div className="content">
                 <div className="container">
-                    <Outlet />
+                    <Outlet/>
                 </div>
             </div>
         </div>
