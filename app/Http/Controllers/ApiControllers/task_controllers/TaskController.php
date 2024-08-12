@@ -26,7 +26,6 @@ class TaskController extends Controller
 
     public function getTaskWithSubmissionsAndComments($id)
     {
-
         $task = TaskModel::where('t_id', $id)
             ->with('taskCategory:c_id,c_name')
             ->with('addedByUser:id,name')
@@ -58,10 +57,6 @@ class TaskController extends Controller
                 $videos = [];
                 $files = [];
 
-                // $submission->submission_attachments = AttachmentsModel::where('a_table', 'task_submissions')
-                //     ->where('a_fk_id', $submission->ts_id)
-                //     ->get();
-
                 $attachments = AttachmentsModel::where('a_table', 'task_submissions')
                     ->where('a_fk_id', $submission->ts_id)
                     ->get();
@@ -80,20 +75,14 @@ class TaskController extends Controller
                     }
                 }
 
-                $submission->submission_attachments = [
+                $submission->submission_attachments_categories = [
                     'images' => $images,
                     'videos' => $videos,
                     'files' => $files,
                 ];
 
-
                 return $submission;
             });
-            // $task->comments = $task->comments;
-
-            // $user_ids = json_decode($task->t_assigned_to);
-            // $temp_users = User::whereIn('id', $user_ids)->select('id', 'name')->get();
-            // $task->assigned_to_users = $temp_users;
         } else {
             return response()->json([
                 'status' => false,
@@ -129,7 +118,7 @@ class TaskController extends Controller
         // return  $request->input('start_time');
         $task = new TaskModel();
         $task->t_content = $request->input('content');
-        $task->t_planed_start_time = $request->input('start_time');
+        $task->t_planed_start_time = $request->input('start_time') ?: null;
         $task->t_planed_end_time = $request->input('end_time');
         $task->t_status = 'active'; // default
         $task->t_category_id = $request->input('category_id');

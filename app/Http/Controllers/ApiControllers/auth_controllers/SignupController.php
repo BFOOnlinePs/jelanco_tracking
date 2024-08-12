@@ -12,9 +12,8 @@ class SignupController extends Controller
     public function signUp(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|unique:users,email',
+            'email' => 'required|email|unique:users,email',
             'password' => 'required', // confirmed in front end
-
         ],);
 
         if ($validator->fails()) {
@@ -23,12 +22,6 @@ class SignupController extends Controller
                 'message' => $validator->errors()->first()
             ], 422);
         }
-        // $user = User::create([
-        //     'email' => $request->input('email'),
-        //     'password' =>  bcrypt($request->input('password')),
-        //     'u_name' => "Aseel",
-        //     'u_role_id' => 1,
-        // ]);
 
         $user = new User();
         $user->email = $request->input('email');
@@ -39,9 +32,6 @@ class SignupController extends Controller
         $user->save();
 
         $token = $user->createToken('api-token')->plainTextToken;
-
-        // Save the token in the remember_token column
-        // $user->update(['remember_token' => $token]);
 
         return response([
             'status' => true,
