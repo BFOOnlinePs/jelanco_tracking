@@ -36,6 +36,7 @@ class TaskSubmissionController extends Controller
         }
     }
 
+    // for edit
     private function handleOldAttachments($files_names, $task_submission)
     {
         foreach ($files_names as $file_name) {
