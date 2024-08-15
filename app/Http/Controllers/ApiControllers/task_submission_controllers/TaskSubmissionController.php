@@ -6,18 +6,21 @@ use App\Http\Controllers\Controller;
 use App\Models\AttachmentsModel;
 use App\Models\TaskSubmissionsModel;
 use App\Services\FileUploadService;
+use App\Services\VideoThumbnailService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class TaskSubmissionController extends Controller
 {
+    protected $thumbnailService;
     protected $fileUploadService;
 
     // Inject the FileUploadService into the controller
-    public function __construct(FileUploadService $fileUploadService)
+    public function __construct(FileUploadService $fileUploadService, VideoThumbnailService $thumbnailService)
     {
         $this->fileUploadService = $fileUploadService;
+        $this->thumbnailService = $thumbnailService;
     }
 
     private function handleAttachmentsUpload($files, $task_submission)
@@ -27,9 +30,23 @@ class TaskSubmissionController extends Controller
             $folderPath = 'uploads';
             $file_name = $this->fileUploadService->uploadFile($file, $folderPath);
 
+            // Check if file is a video based on extension
+            // $allowedVideoExtensions = ['mp4', 'avi', 'mov', 'mkv', 'flv'];
+            $allowedVideoExtensions = ['mp4'];
+            $extension = $file->getClientOriginalExtension();
+            if (in_array($extension, $allowedVideoExtensions)) {
+                $fileNameWithoutExtension = pathinfo($file_name, PATHINFO_FILENAME);
+                $thumbnail_file_name = $fileNameWithoutExtension . '.jpg';
+                $this->thumbnailService->generateThumbnail(
+                    storage_path('app/public/' . $folderPath . '/' . $file_name),
+                    storage_path('app/public/thumbnails/' . $thumbnail_file_name),
+                );
+            }
+
             $attachment->a_table = 'task_submissions';
             $attachment->a_fk_id = $task_submission->ts_id;
             $attachment->a_attachment = $file_name;
+            $attachment->a_thumbnail = $thumbnail_file_name;
             $attachment->a_user_id = auth()->user()->id;
 
             $attachment->save();
@@ -121,7 +138,8 @@ class TaskSubmissionController extends Controller
         }
     }
 
-    public function getTaskSubmission($id){
+    public function getTaskSubmission($id)
+    {
         // $validator = Validator::make($request->all(), [
         //     'task_submission_id' => 'required|exists:task_submissions,ts_id',
         // ]);
