@@ -16,7 +16,7 @@ class TaskSubmissionController extends Controller
     protected $thumbnailService;
     protected $fileUploadService;
 
-    // Inject the FileUploadService into the controller
+    // Inject the FileUploadService and thumbnailService into the controller
     public function __construct(FileUploadService $fileUploadService, VideoThumbnailService $thumbnailService)
     {
         $this->fileUploadService = $fileUploadService;
@@ -30,13 +30,12 @@ class TaskSubmissionController extends Controller
             $folderPath = 'uploads';
             $file_name = $this->fileUploadService->uploadFile($file, $folderPath);
 
-            // Check if file is a video based on extension
-            // $allowedVideoExtensions = ['mp4', 'avi', 'mov', 'mkv', 'flv'];
-            $allowedVideoExtensions = ['mp4'];
+            // Check if file is a video based on extension, then add thumbnail
+            $allowedVideoExtensions = config('filetypes.video_types');
             $extension = $file->getClientOriginalExtension();
             if (in_array($extension, $allowedVideoExtensions)) {
                 $fileNameWithoutExtension = pathinfo($file_name, PATHINFO_FILENAME);
-                $thumbnail_file_name = $fileNameWithoutExtension . '.jpg';
+                $thumbnail_file_name = $fileNameWithoutExtension . '.' . config('constants.thumbnail_extension');
                 $this->thumbnailService->generateThumbnail(
                     storage_path('app/public/' . $folderPath . '/' . $file_name),
                     storage_path('app/public/thumbnails/' . $thumbnail_file_name),
@@ -46,7 +45,6 @@ class TaskSubmissionController extends Controller
             $attachment->a_table = 'task_submissions';
             $attachment->a_fk_id = $task_submission->ts_id;
             $attachment->a_attachment = $file_name;
-            $attachment->a_thumbnail = $thumbnail_file_name;
             $attachment->a_user_id = auth()->user()->id;
 
             $attachment->save();

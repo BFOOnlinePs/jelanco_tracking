@@ -7,17 +7,20 @@ use App\Models\AttachmentsModel;
 use App\Models\TaskSubmissionCommentsModel;
 use App\Models\User;
 use App\Services\FileUploadService;
+use App\Services\VideoThumbnailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class CommentController extends Controller
 {
+    protected $thumbnailService;
     protected $fileUploadService;
 
-    // Inject the FileUploadService into the controller
-    public function __construct(FileUploadService $fileUploadService)
+    // Inject the FileUploadService and thumbnailService into the controller
+    public function __construct(FileUploadService $fileUploadService, VideoThumbnailService $thumbnailService)
     {
         $this->fileUploadService = $fileUploadService;
+        $this->thumbnailService = $thumbnailService;
     }
 
 
@@ -27,6 +30,18 @@ class CommentController extends Controller
             $attachment = new AttachmentsModel();
             $folderPath = 'comments_attachments';
             $file_name = $this->fileUploadService->uploadFile($file, $folderPath);
+
+            // Check if file is a video based on extension, then add thumbnail
+            $allowedVideoExtensions = config('filetypes.video_types');
+            $extension = $file->getClientOriginalExtension();
+            if (in_array($extension, $allowedVideoExtensions)) {
+                $fileNameWithoutExtension = pathinfo($file_name, PATHINFO_FILENAME);
+                $thumbnail_file_name = $fileNameWithoutExtension . '.' . config('constants.thumbnail_extension');
+                $this->thumbnailService->generateThumbnail(
+                    storage_path('app/public/' . $folderPath . '/' . $file_name),
+                    storage_path('app/public/thumbnails/' . $thumbnail_file_name),
+                );
+            }
 
             $attachment->a_table = 'task_submission_comments';
             $attachment->a_fk_id = $fk_id;

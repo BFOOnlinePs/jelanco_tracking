@@ -10,6 +10,7 @@ use App\Models\TaskSubmissionsModel;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use SplFileInfo;
 
@@ -69,6 +70,14 @@ class TaskController extends Controller
                     if (in_array($extension, $imageTypes)) {
                         $images[] = $attachment;
                     } elseif (in_array($extension, $videoTypes)) {
+                        $fileNameWithoutExtension = pathinfo($attachment->a_attachment, PATHINFO_FILENAME);
+                        $thumbnailPath = config(('constants.thumbnail_path')) . $fileNameWithoutExtension . '.' . config('constants.thumbnail_extension');
+
+                        // Check if the thumbnail exists
+                        if (Storage::disk('public')->exists($thumbnailPath)) {
+                            $attachment->thumbnail = $fileNameWithoutExtension . '.' . config('constants.thumbnail_extension');
+                        }
+
                         $videos[] = $attachment;
                     } else {
                         $files[] = $attachment;
