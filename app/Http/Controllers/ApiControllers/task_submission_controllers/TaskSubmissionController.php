@@ -136,6 +136,34 @@ class TaskSubmissionController extends Controller
         }
     }
 
+    /**
+     * Get task submission versions
+     *
+     * @param integer $id, id of submission
+     * @return void
+     */
+    public function getTaskSubmissionVersions($id)
+    {
+        $submissions_versions = [];
+        $currentSubmission = TaskSubmissionsModel::where('ts_id', $id)->first();
+
+        // Traverse the versions upwards until we reach the first submission (parent_id = -1)
+        while ($currentSubmission && $currentSubmission->ts_parent_id != -1) {
+            $submissions_versions[] = $currentSubmission;
+            $currentSubmission = TaskSubmissionsModel::where('ts_id', $currentSubmission->ts_parent_id)->first();
+        }
+
+        // Add the first submission (with parent_id = -1)
+        if ($currentSubmission) {
+            $submissions_versions[] = $currentSubmission;
+        }
+
+        return response()->json([
+            'status' => true,
+            'submissions_versions' => $submissions_versions
+        ]);
+    }
+
     public function getTaskSubmission($id)
     {
         // $validator = Validator::make($request->all(), [

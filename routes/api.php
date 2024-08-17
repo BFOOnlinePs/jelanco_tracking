@@ -41,6 +41,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // tasks submissions
     Route::post('task-submissions', [TaskSubmissionController::class, 'addTaskSubmission']);
     Route::get('task-submissions/{id}', [TaskSubmissionController::class, 'getTaskSubmission']);
+    Route::get('task-submissions/{id}/versions', [TaskSubmissionController::class, 'getTaskSubmissionVersions']);
 
     // task categories
     Route::get('task-categories', [TaskCategoryController::class, 'getTaskCategories']);

@@ -7,22 +7,24 @@ use App\Models\AttachmentsModel;
 use App\Models\TaskSubmissionCommentsModel;
 use App\Models\User;
 use App\Services\FileUploadService;
+use App\Services\MediaService;
 use App\Services\VideoThumbnailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class CommentController extends Controller
 {
+    protected $mediaService;
     protected $thumbnailService;
     protected $fileUploadService;
 
-    // Inject the FileUploadService and thumbnailService into the controller
-    public function __construct(FileUploadService $fileUploadService, VideoThumbnailService $thumbnailService)
+    // Inject the FileUploadService, thumbnailService and MediaService into the controller
+    public function __construct(FileUploadService $fileUploadService, VideoThumbnailService $thumbnailService, MediaService $mediaService)
     {
         $this->fileUploadService = $fileUploadService;
         $this->thumbnailService = $thumbnailService;
+        $this->mediaService = $mediaService;
     }
-
 
     private function handleAttachmentsUpload($files, $fk_id) // $fk_id = task_submission_comment_id
     {
@@ -100,6 +102,11 @@ class CommentController extends Controller
             if ($request->hasFile('documents')) {
                 $this->handleAttachmentsUpload($request->documents, $comment->tsc_id,);
             }
+
+            $comment_media = $this->mediaService->getMedia('task_submission_comments', $comment->tsc_id);
+
+            $comment->comment_attachments_categories = $comment_media;
+
 
 
             return response()->json([
