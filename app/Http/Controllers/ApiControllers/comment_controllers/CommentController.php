@@ -86,7 +86,6 @@ class CommentController extends Controller
             $parent_submission = TaskSubmissionsModel::where('ts_id', $parent_submission->ts_parent_id)->first();
         }
 
-
         $current_user = auth()->user();
 
         $comment = new TaskSubmissionCommentsModel();
@@ -115,8 +114,6 @@ class CommentController extends Controller
             $comment_media = $this->mediaService->getMedia('task_submission_comments', $comment->tsc_id);
 
             $comment->comment_attachments_categories = $comment_media;
-
-
 
             return response()->json([
                 'status' => true,
