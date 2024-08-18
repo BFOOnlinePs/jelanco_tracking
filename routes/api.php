@@ -3,6 +3,7 @@
 use App\Http\Controllers\ApiControllers\auth_controllers\LoginController;
 use App\Http\Controllers\ApiControllers\auth_controllers\LogoutController;
 use App\Http\Controllers\ApiControllers\auth_controllers\SignupController;
+use App\Http\Controllers\ApiControllers\comment_controllers\CommentController;
 use App\Http\Controllers\ApiControllers\task_category_controllers\TaskCategoryController;
 use App\Http\Controllers\ApiControllers\task_controllers\TaskAssignmentController;
 use App\Http\Controllers\ApiControllers\task_controllers\TaskController;
@@ -39,9 +40,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     // tasks submissions
     Route::post('task-submissions', [TaskSubmissionController::class, 'addTaskSubmission']);
+    Route::get('task-submissions/{id}', [TaskSubmissionController::class, 'getTaskSubmission']);
+    Route::get('task-submissions/{id}/versions', [TaskSubmissionController::class, 'getTaskSubmissionVersions']);
 
     // task categories
     Route::get('task-categories', [TaskCategoryController::class, 'getTaskCategories']);
+
+    // comments
+    Route::post('comments', [CommentController::class, 'addTaskSubmissionComment']);
 
     Route::get('users', [userController::class, 'getAllUsers']);
 
