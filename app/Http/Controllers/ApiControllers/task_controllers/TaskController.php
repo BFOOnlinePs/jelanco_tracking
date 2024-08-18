@@ -8,14 +8,21 @@ use App\Models\TaskModel;
 use App\Models\TaskSubmissionCommentsModel;
 use App\Models\TaskSubmissionsModel;
 use App\Models\User;
+use App\Services\MediaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use SplFileInfo;
 
 class TaskController extends Controller
 {
+    protected $mediaService;
 
+    public function __construct(MediaService $mediaService)
+    {
+        $this->mediaService = $mediaService;
+    }
 
     public function getAllTasks()
     {
@@ -26,74 +33,56 @@ class TaskController extends Controller
 
     public function getTaskWithSubmissionsAndComments($id)
     {
-
         $task = TaskModel::where('t_id', $id)
             ->with('taskCategory:c_id,c_name')
             ->with('addedByUser:id,name')
             ->first();
 
         if ($task) {
-            $imageTypes = config('filetypes.image_types');
-            $videoTypes = config('filetypes.video_types');
+            // $task->task_submissions = TaskSubmissionsModel::where('ts_task_id', $id)->get();
 
-            $task->task_submissions = TaskSubmissionsModel::where('ts_task_id', $id)->get();
+            // to get the last submission of each versions chain (not a parent)
+            $task->task_submissions = TaskSubmissionsModel::where('ts_task_id', $id)
+                ->whereNotIn('ts_id', function ($query) {
+                    $query->select('ts_parent_id')
+                        ->from('task_submissions')
+                        ->where('ts_parent_id', '!=', -1);
+                })
+                ->orderBy('created_at', 'desc')
+                ->get();
+
             $task->assigned_to_users = User::whereIn('id', json_decode($task->t_assigned_to))->select('id', 'name')->get();
 
-            $task->task_submissions->transform(function ($submission) use ($imageTypes, $videoTypes) {
+            $task->task_submissions->transform(function ($submission) {
                 // to get the submitter user
                 $user_id = $submission->ts_submitter;
                 $user = User::where('id', $user_id)->select('id', 'name')->first();
                 $submission->submitter_user = $user;
 
-                // to get the task submission comments
-                $submission->submission_comments = TaskSubmissionCommentsModel::where('tsc_task_submission_id', $submission->ts_id)->get();
+                // first submission of each versions chain (parent = -1), so i can get the comments of the parent
+
+                $parent_submission = $submission;
+                // Traverse upwards until we find the submission with parent_id = -1
+                while ($parent_submission && $parent_submission->ts_parent_id != -1) {
+                    $parent_submission = TaskSubmissionsModel::where('ts_id', $parent_submission->ts_parent_id)->first();
+                }
+
+                // to get the task submission comments (of the parent -1)
+                $submission->submission_comments = TaskSubmissionCommentsModel::where('tsc_task_submission_id', $parent_submission->ts_id)->get();
                 $submission->submission_comments->transform(function ($comment) {
                     $comment->commented_by_user = User::where('id', $comment->tsc_commented_by)->select('id', 'name')->first();
+                    $comment_media = $this->mediaService->getMedia('task_submission_comments', $comment->tsc_id);
+
+                    $comment->comment_attachments_categories = $comment_media;
                     return $comment;
                 });
 
-                // to get task media (images + videos + files)
+                $submission_media = $this->mediaService->getMedia('task_submissions', $submission->ts_id);
 
-                $images = [];
-                $videos = [];
-                $files = [];
-
-                // $submission->submission_attachments = AttachmentsModel::where('a_table', 'task_submissions')
-                //     ->where('a_fk_id', $submission->ts_id)
-                //     ->get();
-
-                $attachments = AttachmentsModel::where('a_table', 'task_submissions')
-                    ->where('a_fk_id', $submission->ts_id)
-                    ->get();
-
-                foreach ($attachments as $attachment) {
-                    $extension = strtolower(pathinfo($attachment->a_attachment, PATHINFO_EXTENSION));
-
-                    // Log::info('File extension: ' . $extension);
-
-                    if (in_array($extension, $imageTypes)) {
-                        $images[] = $attachment;
-                    } elseif (in_array($extension, $videoTypes)) {
-                        $videos[] = $attachment;
-                    } else {
-                        $files[] = $attachment;
-                    }
-                }
-
-                $submission->submission_attachments = [
-                    'images' => $images,
-                    'videos' => $videos,
-                    'files' => $files,
-                ];
-
+                $submission->submission_attachments_categories = $submission_media;
 
                 return $submission;
             });
-            // $task->comments = $task->comments;
-
-            // $user_ids = json_decode($task->t_assigned_to);
-            // $temp_users = User::whereIn('id', $user_ids)->select('id', 'name')->get();
-            // $task->assigned_to_users = $temp_users;
         } else {
             return response()->json([
                 'status' => false,
@@ -126,7 +115,6 @@ class TaskController extends Controller
         }
 
         $auth_id = auth()->user()->id;
-        // return  $request->input('start_time');
         $task = new TaskModel();
         $task->t_content = $request->input('content');
         $task->t_planed_start_time = $request->input('start_time');
