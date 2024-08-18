@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AttachmentsModel;
 use App\Models\TaskSubmissionsModel;
 use App\Services\FileUploadService;
+use App\Services\MediaService;
 use App\Services\VideoThumbnailService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -13,14 +14,16 @@ use Illuminate\Support\Facades\Validator;
 
 class TaskSubmissionController extends Controller
 {
+    protected $mediaService;
     protected $thumbnailService;
     protected $fileUploadService;
 
-    // Inject the FileUploadService and thumbnailService into the controller
-    public function __construct(FileUploadService $fileUploadService, VideoThumbnailService $thumbnailService)
+    // Inject the FileUploadService, thumbnailService and MediaService into the controller
+    public function __construct(FileUploadService $fileUploadService, VideoThumbnailService $thumbnailService, MediaService $mediaService)
     {
         $this->fileUploadService = $fileUploadService;
         $this->thumbnailService = $thumbnailService;
+        $this->mediaService = $mediaService;
     }
 
     private function handleAttachmentsUpload($files, $task_submission)
@@ -157,6 +160,17 @@ class TaskSubmissionController extends Controller
         if ($currentSubmission) {
             $submissions_versions[] = $currentSubmission;
         }
+
+        // Convert the array to a collection so we can use the transform method
+        $submissions_versions = collect($submissions_versions);
+
+        $submissions_versions->transform(function ($submission) {
+            $submission_media = $this->mediaService->getMedia('task_submissions', $submission->ts_id);
+
+            $submission->submission_attachments_categories = $submission_media;
+
+            return $submission;
+        });
 
         return response()->json([
             'status' => true,

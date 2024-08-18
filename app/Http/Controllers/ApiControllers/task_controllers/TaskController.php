@@ -41,13 +41,14 @@ class TaskController extends Controller
         if ($task) {
             // $task->task_submissions = TaskSubmissionsModel::where('ts_task_id', $id)->get();
 
-            // to get the last submission of each versions chain
+            // to get the last submission of each versions chain (not a parent)
             $task->task_submissions = TaskSubmissionsModel::where('ts_task_id', $id)
                 ->whereNotIn('ts_id', function ($query) {
                     $query->select('ts_parent_id')
                         ->from('task_submissions')
                         ->where('ts_parent_id', '!=', -1);
                 })
+                ->orderBy('created_at', 'desc')
                 ->get();
 
             $task->assigned_to_users = User::whereIn('id', json_decode($task->t_assigned_to))->select('id', 'name')->get();
@@ -58,8 +59,16 @@ class TaskController extends Controller
                 $user = User::where('id', $user_id)->select('id', 'name')->first();
                 $submission->submitter_user = $user;
 
-                // to get the task submission comments
-                $submission->submission_comments = TaskSubmissionCommentsModel::where('tsc_task_submission_id', $submission->ts_id)->get();
+                // first submission of each versions chain (parent = -1), so i can get the comments of the parent
+
+                $parent_submission = $submission;
+                // Traverse upwards until we find the submission with parent_id = -1
+                while ($parent_submission && $parent_submission->ts_parent_id != -1) {
+                    $parent_submission = TaskSubmissionsModel::where('ts_id', $parent_submission->ts_parent_id)->first();
+                }
+
+                // to get the task submission comments (of the parent -1)
+                $submission->submission_comments = TaskSubmissionCommentsModel::where('tsc_task_submission_id', $parent_submission->ts_id)->get();
                 $submission->submission_comments->transform(function ($comment) {
                     $comment->commented_by_user = User::where('id', $comment->tsc_commented_by)->select('id', 'name')->first();
                     $comment_media = $this->mediaService->getMedia('task_submission_comments', $comment->tsc_id);
