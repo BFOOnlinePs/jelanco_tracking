@@ -5,8 +5,10 @@ namespace App\Http\Controllers\ApiControllers\task_submission_controllers;
 use App\Http\Controllers\Controller;
 use App\Models\AttachmentsModel;
 use App\Models\TaskSubmissionsModel;
+use App\Models\User;
 use App\Services\FileUploadService;
 use App\Services\MediaService;
+use App\Services\SubmissionService;
 use App\Services\VideoThumbnailService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -17,14 +19,17 @@ class TaskSubmissionController extends Controller
     protected $mediaService;
     protected $thumbnailService;
     protected $fileUploadService;
+    protected $submissionService;
 
     // Inject the FileUploadService, thumbnailService and MediaService into the controller
-    public function __construct(FileUploadService $fileUploadService, VideoThumbnailService $thumbnailService, MediaService $mediaService)
+    public function __construct(FileUploadService $fileUploadService, VideoThumbnailService $thumbnailService, MediaService $mediaService, SubmissionService $submissionService)
     {
         $this->fileUploadService = $fileUploadService;
         $this->thumbnailService = $thumbnailService;
         $this->mediaService = $mediaService;
+        $this->submissionService = $submissionService;
     }
+
 
     private function handleAttachmentsUpload($files, $task_submission)
     {
@@ -75,7 +80,7 @@ class TaskSubmissionController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'parent_id' => 'int', // -1 when no parent (the original/first submission)
-            'task_id' => 'required|exists:tasks,t_id',
+            'task_id' => 'required', // -1 when submission has no parent
             'content' => 'required',
             'start_latitude' => 'required',
             'start_longitude' => 'required',
@@ -130,6 +135,10 @@ class TaskSubmissionController extends Controller
             if ($request->has('old_attachments')) {
                 $this->handleOldAttachments($request->old_attachments, $task_submission,);
             }
+
+            $submission_media = $this->mediaService->getMedia('task_submissions', $task_submission->ts_id);
+
+            $task_submission->submission_attachments_categories = $submission_media;
 
             return response()->json([
                 'status' => true,
@@ -198,6 +207,32 @@ class TaskSubmissionController extends Controller
         return response()->json([
             'status' => true,
             'task_submission' => $task_submission
+        ], 200);
+    }
+
+    // submissions that has no tasks (ts_task_is = -1)
+    public function getUserSubmissions()
+    {
+        $user = auth()->user();
+
+        $submissions = TaskSubmissionsModel::where('ts_task_id', '-1')
+            ->where('ts_submitter', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(8);
+
+
+        // Process the submissions using the service
+        $processedSubmissions = $this->submissionService->processSubmissions($submissions);
+
+        return response()->json([
+            'status' => true,
+            'pagination' => [
+                'current_page' => $processedSubmissions->currentPage(),
+                'last_page' => $processedSubmissions->lastPage(),
+                'per_page' => $processedSubmissions->perPage(),
+                'total_items' => $processedSubmissions->total(),
+            ],
+            'submissions' => $processedSubmissions->values(),
         ], 200);
     }
 }
