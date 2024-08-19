@@ -365,9 +365,10 @@
                     const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 
                     let imagePreviews = '';
-                    if (response.data.attachments && response.data.attachments.length > 0) {
+                    if (response.attachments && response.attachments.length > 0) {
                         imagePreviews = response.data.attachments.map(function(attachment) {
-                            return `<img style="width: 100px; margin-right: 5px;" class="img-fluid img-thumbnail" src="${attachment.url}" alt="Attachment">`;
+                            return `<img style="width: 100px; margin-right: 5px;" class="img-fluid img-thumbnail" src="${attachment.
+                            a_attachment}" alt="Attachment">`;
                         }).join('');
                     }
                     
