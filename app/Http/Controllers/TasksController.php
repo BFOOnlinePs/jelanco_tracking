@@ -137,6 +137,7 @@ class TasksController extends Controller
                 'message' => 'تم اضافة التعليق بنجاح',
                 'data' => $data,
                 'client' => $client,
+                'attachments' => AttachmentsModel::where('a_table','task_submission_comments')->where('a_fk_id',$data->tsc_id)->get()
             ]);
         }
     }
