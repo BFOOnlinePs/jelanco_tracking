@@ -327,14 +327,14 @@
             $(this).fadeOut();
         });
 
-        $(document).on('click','.imageModal',function(){            
-            var imgSrc = $(this).attr('src');            
+        $(document).on('click','.imageModal',function(){
+            var imgSrc = $(this).attr('src');
             $('#enlargedImage').attr('src', imgSrc);
             $('#imageModal').fadeIn();
         });
 
         $(document).on('submit', '.comment-form', function(e) {
-            
+
                 e.preventDefault();
             var formData = new FormData(this);
             $.ajaxSetup({
@@ -371,59 +371,58 @@
                         }).join('');
                     }
 
-$('#list_comments_content_' + formData.get('tsc_task_submission_id')).append(`
-    <div class="row">
-        <div class="col-md-3 justify-content-center align-content-center float-right" dir="rtl">
-            <div class="row">
-                <div class="col-md-3 justify-content-center align-content-center">
-                    <img style="width: 40px" class="img-circle img-bordered-sm"
-                         src="{{ asset('assets/dist/img/user7-128x128.jpg') }}"
-                         alt="User Image">
-                </div>
-                <div class="col-md-9 justify-content-center align-content-center">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <span class="username">
-                                <a href="#">${response.client.name}</a>
-                            </span>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <span class="description"><span>${formattedDate}</span></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-9">
-            <div class="dialogbox">
-                <div class="body">
-                    <span class="tip tip-right"></span>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="message">
-                                <p>${response.data.tsc_content}</p>
-                                <!-- Include image previews here -->
-                                ${imagePreviews}
+                    $('#list_comments_content_' + formData.get('tsc_task_submission_id')).append(`
+                        <div class="row">
+                            <div class="col-md-3 justify-content-center align-content-center float-right" dir="rtl">
+                                <div class="row">
+                                    <div class="col-md-3 justify-content-center align-content-center">
+                                        <img style="width: 40px" class="img-circle img-bordered-sm"
+                                             src="{{ asset('assets/dist/img/user7-128x128.jpg') }}"
+                                             alt="User Image">
+                                    </div>
+                                    <div class="col-md-9 justify-content-center align-content-center">
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <span class="username">
+                                                    <a href="#">${response.client.name}</a>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <span class="description"><span>${formattedDate}</span></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-9">
+                                <div class="dialogbox">
+                                    <div class="body">
+                                        <span class="tip tip-right"></span>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="message">
+                                                    <p>${response.data.tsc_content}</p>
+                                                    <!-- Include image previews here -->
+                                                    ${imagePreviews}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-`);
-
-$('#comment_content_' + formData.get('tsc_task_submission_id')).val('');
-
+                    `);
+                    $('#comment_content_' + formData.get('tsc_task_submission_id')).val('');
+                    $('.image_previews_' + formData.get('tsc_task_submission_id')).empty();
                 },
                 error: function(xhr, status, error) {
                     console.error(error);
                 }
             });
-            
-            
+
+
         });
     </script>
 @endsection
