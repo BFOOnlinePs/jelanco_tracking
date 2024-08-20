@@ -1,46 +1,3 @@
-{{--<table style="font-size: 14px" class="table table-sm table-hover table-bordered">--}}
-{{--    <thead>--}}
-{{--        <tr>--}}
-{{--            <th>نص المهمة</th>--}}
-{{--            <th>وقت البداية</th>--}}
-{{--            <th>وقت النهاية</th>--}}
-{{--            <th>الحالة</th>--}}
-{{--            <th>الفئة</th>--}}
-{{--            <th>اضيفت بواسطة</th>--}}
-{{--            <th>العمليات</th>--}}
-{{--        </tr>--}}
-{{--    </thead>--}}
-{{--    <tbody>--}}
-{{--        @if($data->isEmpty())--}}
-{{--            <tr>--}}
-{{--                <td colspan="7" class="text-center">لا توجد بيانات</td>--}}
-{{--            </tr>--}}
-{{--        @else--}}
-{{--            @foreach($data as $key)--}}
-
-{{--                <tr>--}}
-{{--                    <td>{{ $key->t_content }}</td>--}}
-{{--                    <td>{{ $key->t_planed_start_time }}</td>--}}
-{{--                    <td>{{ $key->t_planed_end_time }}</td>--}}
-{{--                    <td class="text-center justify-content-center align-content-center">--}}
-{{--                        @if($key->t_status == 'active')--}}
-{{--                            <span class="fa fa-check-circle text-success"></span>--}}
-{{--                        @else--}}
-{{--                            <span class="fa fa-times-circle text-danger"></span>--}}
-{{--                        @endif--}}
-{{--                    </td>--}}
-{{--                    <td>{{ $key->category->c_name ?? '' }}</td>--}}
-{{--                    <td>{{ $key->added_by->name }}</td>--}}
-{{--                    <td>--}}
-{{--                        <a href="{{ route('tasks.edit',['id'=>$key->t_id]) }}" class="btn btn-success btn-sm"><span class="fa fa-edit"></span></a>--}}
-{{--                        <a href="{{ route('tasks.edit',['id'=>$key->t_id]) }}" class="btn btn-dark btn-sm"><span class="fa fa-tasks"></span></a>--}}
-{{--                    </td>--}}
-{{--                </tr>--}}
-{{--            @endforeach--}}
-{{--        @endif--}}
-{{--    </tbody>--}}
-{{--</table>--}}
-
 <div class="col-md-12">
     @php
         $specificDate = '';
@@ -117,23 +74,20 @@
                                                         لا توجد تعليقات
                                                     </div>
                                                 @else
-
-                                                    @foreach($submission->comments as $comment)
+                                                        @foreach($submission->comments as $comment)
                                                             <div class="row">
-                                                                <div class="col-md-3 justify-content-center align-content-center float-right"
-                                                                     dir="rtl">
+                                                                <div class="col-md-3 justify-content-center align-content-center float-right" dir="rtl">
                                                                     <div class="row">
                                                                         <div class="col-md-3 justify-content-center align-content-center">
                                                                             <img style="width: 40px" class="img-circle img-bordered-sm"
-                                                                                 src="{{ asset('assets/dist/img/user7-128x128.jpg') }}"
-                                                                                 alt="User Image">
+                                                                                 src="{{ asset('assets/dist/img/user7-128x128.jpg') }}" alt="User Image">
                                                                         </div>
                                                                         <div class="col-md-9 justify-content-center align-content-center">
                                                                             <div class="row">
                                                                                 <div class="col-md-12">
-                                                          <span class="username">
-                                                    <a href="#">{{ $comment->comment_by->name }}</a>
-                                                    </span>
+                            <span class="username">
+                                <a href="#">{{ $comment->comment_by->name }}</a>
+                            </span>
                                                                                 </div>
                                                                             </div>
                                                                             <div class="row">
@@ -152,12 +106,30 @@
                                                                                 <div class="col-md-12">
                                                                                     <div class="message">
                                                                                         <p>{{ $comment->tsc_content }}</p>
-                                                                                        <div id="imagePreviewsContainer"></div>
-                                                                                        @if (!$comment->attachments->isEmpty())
-                                                                                            @foreach ($comment->attachments as $attachment)
-                                                                                                <img style="width: 100px" class="img-fluid img-thumbnail imageModal" src="{{ asset('storage/comments_attachments/'.$attachment->a_attachment) }}" alt="">
-                                                                                            @endforeach
-                                                                                        @endif
+                                                                                        <div id="imagePreviewsContainer">
+                                                                                            @if (!$comment->attachments->isEmpty())
+                                                                                                @foreach ($comment->attachments as $attachment)
+                                                                                                    @php
+                                                                                                        $filePath = asset('storage/comments_attachments/'.$attachment->a_attachment);
+                                                                                                        $fileExtension = pathinfo($filePath, PATHINFO_EXTENSION);
+                                                                                                    @endphp
+
+                                                                                                    @if(in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png', 'gif']))
+                                                                                                        <img style="width: 100px" class="img-fluid img-thumbnail imageModal" src="{{ $filePath }}" alt="Image">
+                                                                                                    @elseif(in_array(strtolower($fileExtension), ['mp4', 'webm', 'ogg']))
+                                                                                                        <video style="width: 100px;" controls class="img-fluid video-thumbnail">
+                                                                                                            <source src="{{ $filePath }}" type="video/{{ $fileExtension }}">
+                                                                                                        </video>
+                                                                                                    @elseif($fileExtension === 'pdf')
+                                                                                                        <a href="{{ $filePath }}" target="_blank">
+                                                                                                            <embed src="{{ $filePath }}" type="application/pdf" width="100px" height="100px" class="pdf-thumbnail"/>
+                                                                                                        </a>
+                                                                                                    @else
+                                                                                                        <a href="{{ $filePath }}" target="_blank">{{ $attachment->a_attachment }}</a>
+                                                                                                    @endif
+                                                                                                @endforeach
+                                                                                            @endif
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
@@ -165,8 +137,7 @@
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                    @endforeach
-
+                                                        @endforeach
                                                 @endif
                                                 </div>
 

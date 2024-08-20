@@ -48,7 +48,7 @@ class TasksController extends Controller
         } elseif ($request->filled('task_end_time')) {
             $data->where('t_planed_end_time', '<=', $request->task_end_time);
         }
-        $data = $data->with('taskCategory','addedByUser','submissions.submitter' , 'submissions.comments.comment_by' , 'submissions.comments.attachments')->orderBy('created_at')->paginate(10);
+        $data = $data->with('taskCategory','addedByUser','submissions.submitter' , 'submissions.comments.comment_by' , 'submissions.comments.attachments')->orderBy('created_at')->paginate(5);
         return response()->json([
             'success' => true,
             'view' => view('project.tasks.ajax.list_tasks_ajax', ['data'=>$data])->render(),
@@ -124,6 +124,26 @@ class TasksController extends Controller
         if ($data->save()){
             if($request->has('image')){
                 foreach ($request->image as $key){
+                    $attachment = new AttachmentsModel();
+                    $attachment->a_table = 'task_submission_comments';
+                    $attachment->a_fk_id = $data->tsc_id;
+                    $attachment->a_attachment = $this->fileUploadService->uploadFile($key,'comments_attachments');
+                    $attachment->a_user_id = auth()->user()->id;
+                    $attachment->save();
+                }
+            }
+            if($request->has('video')){
+                foreach ($request->video as $key){
+                    $attachment = new AttachmentsModel();
+                    $attachment->a_table = 'task_submission_comments';
+                    $attachment->a_fk_id = $data->tsc_id;
+                    $attachment->a_attachment = $this->fileUploadService->uploadFile($key,'comments_attachments');
+                    $attachment->a_user_id = auth()->user()->id;
+                    $attachment->save();
+                }
+            }
+            if($request->has('file')){
+                foreach ($request->file as $key){
                     $attachment = new AttachmentsModel();
                     $attachment->a_table = 'task_submission_comments';
                     $attachment->a_fk_id = $data->tsc_id;
