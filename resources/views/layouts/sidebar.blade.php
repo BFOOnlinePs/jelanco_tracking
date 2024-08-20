@@ -47,13 +47,13 @@
                 @endcan
                 <li class="nav-item">
                     <a href="{{ route('tasks_category.index') }}" class="nav-link">
-                        <i class="nav-icon fa fa-users"></i>
+                        <i class="nav-icon fa fa-list-alt"></i>
                         <p>فئات المهام</p>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a href="{{ route('tasks.index') }}" class="nav-link">
-                        <i class="nav-icon fa fa-users"></i>
+                        <i class="nav-icon fa fa-tasks"></i>
                         <p>المهام</p>
                     </a>
                 </li>
