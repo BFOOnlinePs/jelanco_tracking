@@ -101,6 +101,27 @@
             line-height: 1.5;
             color: #797979;
         }
+
+        .pagination > li > a,
+        .pagination > li > span {
+            color: black; // use your own color here
+        }
+
+        .pagination > .active ,
+        .pagination > .active > a,
+        .pagination > .active > a:focus,
+        .pagination > .active > a:hover,
+        .pagination > .active > span,
+        .pagination > .active > span:focus,
+        .pagination > .active > span:hover {
+            background-color: black;
+            border-color: black;
+        }
+
+        .page-item.active .page-link {
+            background-color: black;
+            border-color: black;
+        }
     </style>
 
     @yield('style')
