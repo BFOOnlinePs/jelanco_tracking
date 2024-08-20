@@ -206,23 +206,224 @@
             });
         }
 
-        // $('.comment_content').keypress(function (e) {
-        //     if(e.key === 'Enter'){
-        //         alert('asd');
-        //     }
-        // })
-
-        // $(document).on('keypress','.comment_content',function (e) {
-        //     if(e.key === 'Enter'){
-        //         e.preventDefault();
-        //         const tsc_task_submission_id = $(this).attr('id').split('_').pop(); // Extract the submission ID from the input ID
-        //         const tsc_task_id = $(this).closest('.input-group').find('button').attr('onclick').match(/\d+/g)[0];
-        //         const tsc_commented_by = $(this).closest('.input-group').find('button').attr('onclick').match(/\d+/g).pop();
-        //         $('#no_data_'+tsc_task_submission_id).empty();
+        // $(document).on('click', '.image_icon, .video_icon, .file_icon', function(e) {
+        //     e.preventDefault(); // Prevent default action
         //
-        //         $(this).val('');
+        //     // Get the closest form element
+        //     var form = $(this).closest('form');
+        //
+        //     // Extract the ts_id from the input field's id attribute
+        //     var ts_id = form.find('input.comment_content').attr('id').split('_')[2];
+        //
+        //     // Determine the type of input to create based on the clicked icon
+        //     var inputType;
+        //     var acceptType;
+        //     var previewContainerClass;
+        //
+        //     if ($(this).hasClass('image_icon')) {
+        //         inputType = 'image';
+        //         acceptType = 'image/*';
+        //         previewContainerClass = '.image_previews_';
+        //     } else if ($(this).hasClass('video_icon')) {
+        //         inputType = 'video';
+        //         acceptType = 'video/*';
+        //         previewContainerClass = '.video_previews_';
+        //     } else if ($(this).hasClass('file_icon')) {
+        //         inputType = 'file';
+        //         acceptType = '*/*';
+        //         previewContainerClass = '.file_previews_';
         //     }
-        // })
+        //
+        //     // Create a hidden file input element for file selection
+        //     var input = $('<input name="' + inputType + '[]" type="file" multiple accept="' + acceptType + '" style="display:none;" />');
+        //
+        //     // Append the input to the form
+        //     form.append(input);
+        //
+        //     input.on('change', function() {
+        //         var files = this.files; // Get the selected files
+        //
+        //         // Iterate over each file and display previews
+        //         for (var i = 0; i < files.length; i++) {
+        //             var file = files[i];
+        //             var reader = new FileReader();
+        //             reader.onload = function(e) {
+        //                 var fileContainer = $('<div>').addClass('file-container').css({
+        //                     display: 'inline-block',
+        //                     position: 'relative',
+        //                     margin: '5px'
+        //                 });
+        //
+        //                 var preview;
+        //                 if (inputType === 'image') {
+        //                     preview = $('<img>').attr('src', e.target.result).addClass('img-thumbnail').css('max-width', '100px');
+        //                 } else if (inputType === 'video') {
+        //                     preview = $('<video controls>').attr('src', e.target.result).css('max-width', '100px');
+        //                 } else {
+        //                     preview = $('<span>').text(file.name).css({
+        //                         display: 'block',
+        //                         'max-width': '100px',
+        //                         overflow: 'hidden',
+        //                         'text-overflow': 'ellipsis'
+        //                     });
+        //                 }
+        //
+        //                 var deleteBtn = $('<span>').html('&times;').addClass('delete-btn').css({
+        //                     position: 'absolute',
+        //                     top: '0px',
+        //                     right: '0px',
+        //                     background: '#ff0000',
+        //                     color: '#fff',
+        //                     padding: '2px 5px',
+        //                     cursor: 'pointer'
+        //                 });
+        //
+        //                 fileContainer.append(preview).append(deleteBtn);
+        //
+        //                 form.find(previewContainerClass + ts_id).append(fileContainer);
+        //
+        //                 // Delete button click event
+        //                 deleteBtn.on('click', function() {
+        //                     fileContainer.remove();
+        //                     // Remove the corresponding file input
+        //                     input.remove();
+        //                 });
+        //
+        //                 // Preview click event to show enlarged view (only for images and videos)
+        //                 if (inputType === 'image' || inputType === 'video') {
+        //                     preview.on('click', function() {
+        //                         $('#enlargedImage').attr('src', e.target.result);
+        //                         $('#imageModal').fadeIn();
+        //                     });
+        //                 }
+        //             };
+        //             reader.readAsDataURL(file);
+        //         }
+        //     });
+        //
+        //     input.trigger('click');
+        // });
+
+
+        $('#imageModal').on('click', function() {
+            $(this).fadeOut();
+        });
+
+        $(document).on('click','.imageModal',function(){
+            var imgSrc = $(this).attr('src');
+            $('#enlargedImage').attr('src', imgSrc);
+            $('#imageModal').fadeIn();
+        });
+
+        $(document).on('submit', '.comment-form', function(e) {
+            e.preventDefault();
+
+            var formData = new FormData(this);
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
+            $.ajax({
+                url: $(this).attr('action'),
+                type: $(this).attr('method'),
+                dataType: 'json',
+                processData: false,
+                contentType: false,
+                data: formData,
+                success: function(response) {
+                    // Check if response.data is defined and has necessary properties
+                    if (response.data && response.data.created_at && response.data.tsc_content && response.client && response.client.name) {
+                        const createdAt = new Date(response.data.created_at);
+
+                        const year = createdAt.getFullYear();
+                        const month = String(createdAt.getMonth() + 1).padStart(2, '0');
+                        const day = String(createdAt.getDate()).padStart(2, '0');
+                        const hours = String(createdAt.getHours()).padStart(2, '0');
+                        const minutes = String(createdAt.getMinutes()).padStart(2, '0');
+                        const seconds = String(createdAt.getSeconds()).padStart(2, '0');
+
+                        const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+
+                        let attachmentsHtml = '';
+                        if (response.attachments && response.attachments.length > 0) {
+                            attachmentsHtml = response.attachments.map(function(attachment) {
+                                const filePath = attachment.a_attachment;
+                                const fileExtension = filePath.split('.').pop().toLowerCase();
+                                if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
+                                    return `<img style="width: 100px; margin-right: 5px;" class="img-fluid img-thumbnail imageModal" src="{{ asset('storage/comments_attachments/') }}/${filePath}" alt="Image">`;
+                                } else if (['mp4', 'webm', 'ogg'].includes(fileExtension)) {
+                                    return `<video style="width: 100px; margin-right: 5px;" controls class="img-fluid video-thumbnail">
+                                        <source src="{{ asset('storage/comments_attachments/') }}/${filePath}" type="video/${fileExtension}">
+                                    </video>`;
+                                } else if (fileExtension === 'pdf') {
+                                    return `<a href="{{ asset('storage/comments_attachments/') }}/${filePath}" target="_blank">
+                                          <embed src="{{ asset('storage/comments_attachments/') }}/${filePath}" type="application/pdf" width="100px" height="100px" class="pdf-thumbnail" />
+                                    </a>`;
+                                } else {
+                                    return `<a href="{{ asset('storage/comments_attachments/') }}/${filePath}" target="_blank">${attachment.a_attachment}</a>`;
+                                }
+                            }).join('');
+                        }
+
+                        $('#list_comments_content_' + formData.get('tsc_task_submission_id')).append(`
+                    <div class="row">
+                        <div class="col-md-3 justify-content-center align-content-center float-right" dir="rtl">
+                            <div class="row">
+                                <div class="col-md-3 justify-content-center align-content-center">
+                                    <img style="width: 40px" class="img-circle img-bordered-sm"
+                                         src="{{ asset('assets/dist/img/user7-128x128.jpg') }}"
+                                         alt="User Image">
+                                </div>
+                                <div class="col-md-9 justify-content-center align-content-center">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <span class="username">
+                                                <a href="#">${response.client.name}</a>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <span class="description"><span>${formattedDate}</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="dialogbox">
+                                <div class="body">
+                                    <span class="tip tip-right"></span>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="message">
+                                                <p>${response.data.tsc_content}</p>
+                                                <!-- Include attachments here -->
+                                                ${attachmentsHtml}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `);
+                        $('#comment_content_' + formData.get('tsc_task_submission_id')).val('');
+                        $('.image_previews_' + formData.get('tsc_task_submission_id')).empty();
+                        $('.video_previews_' + formData.get('tsc_task_submission_id')).empty();
+                        $('.file_previews_' + formData.get('tsc_task_submission_id')).empty();
+                    } else {
+                        console.error('Invalid response structure', response);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Ajax request failed:', error);
+                }
+            });
+        });
 
         $(document).on('click', '.image_icon, .video_icon, .file_icon', function(e) {
             e.preventDefault(); // Prevent default action
@@ -248,7 +449,7 @@
                 previewContainerClass = '.video_previews_';
             } else if ($(this).hasClass('file_icon')) {
                 inputType = 'file';
-                acceptType = '*/*';
+                acceptType = 'image/*,video/*,.pdf'; // Allow images, videos, and PDFs
                 previewContainerClass = '.file_previews_';
             }
 
@@ -265,6 +466,7 @@
                 for (var i = 0; i < files.length; i++) {
                     var file = files[i];
                     var reader = new FileReader();
+
                     reader.onload = function(e) {
                         var fileContainer = $('<div>').addClass('file-container').css({
                             display: 'inline-block',
@@ -273,10 +475,17 @@
                         });
 
                         var preview;
-                        if (inputType === 'image') {
+                        if (file.type.startsWith('image/')) {
                             preview = $('<img>').attr('src', e.target.result).addClass('img-thumbnail').css('max-width', '100px');
-                        } else if (inputType === 'video') {
+                        } else if (file.type.startsWith('video/')) {
                             preview = $('<video controls>').attr('src', e.target.result).css('max-width', '100px');
+                        } else if (file.type === 'application/pdf') {
+                            preview = $('<a>').attr('href', e.target.result).attr('target', '_blank').text(file.name).css({
+                                display: 'block',
+                                'max-width': '100px',
+                                overflow: 'hidden',
+                                'text-overflow': 'ellipsis'
+                            });
                         } else {
                             preview = $('<span>').text(file.name).css({
                                 display: 'block',
@@ -308,121 +517,19 @@
                         });
 
                         // Preview click event to show enlarged view (only for images and videos)
-                        if (inputType === 'image' || inputType === 'video') {
+                        if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
                             preview.on('click', function() {
                                 $('#enlargedImage').attr('src', e.target.result);
                                 $('#imageModal').fadeIn();
                             });
                         }
                     };
+
                     reader.readAsDataURL(file);
                 }
             });
 
             input.trigger('click');
-        });
-
-
-        $('#imageModal').on('click', function() {
-            $(this).fadeOut();
-        });
-
-        $(document).on('click','.imageModal',function(){
-            var imgSrc = $(this).attr('src');
-            $('#enlargedImage').attr('src', imgSrc);
-            $('#imageModal').fadeIn();
-        });
-
-        $(document).on('submit', '.comment-form', function(e) {
-
-                e.preventDefault();
-            var formData = new FormData(this);
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                }
-            });
-
-            $.ajax({
-                url: $(this).attr('action'),
-                type: $(this).attr('method'),
-                dataType: 'json',
-                processData: false,
-                contentType: false,
-                data: formData,
-                success: function(response) {
-                    const createdAt = new Date(response.data.created_at);
-
-                    // To get Time like laravel timestamp (date and time)
-                    const year = createdAt.getFullYear();
-                    const month = String(createdAt.getMonth() + 1).padStart(2, '0');
-                    const day = String(createdAt.getDate()).padStart(2, '0');
-
-                    const hours = String(createdAt.getHours()).padStart(2, '0');
-                    const minutes = String(createdAt.getMinutes()).padStart(2, '0');
-                    const seconds = String(createdAt.getSeconds()).padStart(2, '0');
-
-                    const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-
-                    let imagePreviews = '';
-                    if (response.attachments && response.attachments.length > 0) {
-                        imagePreviews = response.attachments.map(function(attachment) {
-                            return `<img style="width: 100px; margin-right: 5px;" class="img-fluid img-thumbnail imageModal" src="{{ asset('storage/comments_attachments/') }}/${attachment.a_attachment}" alt="Attachment">`;
-                        }).join('');
-                    }
-
-                    $('#list_comments_content_' + formData.get('tsc_task_submission_id')).append(`
-                        <div class="row">
-                            <div class="col-md-3 justify-content-center align-content-center float-right" dir="rtl">
-                                <div class="row">
-                                    <div class="col-md-3 justify-content-center align-content-center">
-                                        <img style="width: 40px" class="img-circle img-bordered-sm"
-                                             src="{{ asset('assets/dist/img/user7-128x128.jpg') }}"
-                                             alt="User Image">
-                                    </div>
-                                    <div class="col-md-9 justify-content-center align-content-center">
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <span class="username">
-                                                    <a href="#">${response.client.name}</a>
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <span class="description"><span>${formattedDate}</span></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-9">
-                                <div class="dialogbox">
-                                    <div class="body">
-                                        <span class="tip tip-right"></span>
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <div class="message">
-                                                    <p>${response.data.tsc_content}</p>
-                                                    <!-- Include image previews here -->
-                                                    ${imagePreviews}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `);
-                    $('#comment_content_' + formData.get('tsc_task_submission_id')).val('');
-                    $('.image_previews_' + formData.get('tsc_task_submission_id')).empty();
-                },
-                error: function(xhr, status, error) {
-                    console.error(error);
-                }
-            });
-
-
         });
     </script>
 @endsection
