@@ -97,6 +97,7 @@ class TaskController extends Controller
         ]);
     }
 
+
     public function addTask(Request $request)
     {
         $validator = Validator::make($request->all(), [
