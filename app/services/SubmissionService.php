@@ -39,8 +39,8 @@ class SubmissionService
         $submissions->getCollection()->transform(function ($submission) {
             // Get the submitter user
             $user = User::where('id', $submission->ts_submitter)
-                        ->select('id', 'name')
-                        ->first();
+                ->select('id', 'name')
+                ->first();
             $submission->submitter_user = $user;
 
             // Find the first submission of each version chain
@@ -49,18 +49,24 @@ class SubmissionService
                 $parent_submission = TaskSubmissionsModel::where('ts_id', $parent_submission->ts_parent_id)->first();
             }
 
-            // Get the comments of the parent submission
-            $submission->submission_comments = TaskSubmissionCommentsModel::where('tsc_task_submission_id', $parent_submission->ts_id)->get();
-            $submission->submission_comments->transform(function ($comment) {
-                $comment->commented_by_user = User::where('id', $comment->tsc_commented_by)
-                                                  ->select('id', 'name')
-                                                  ->first();
+            $submission->comments_count = $this->getCommentCountTillParent($submission->ts_id);
 
-                // Get media for each comment
-                $comment->comment_attachments_categories = $this->mediaService->getMedia('task_submission_comments', $comment->tsc_id);
 
-                return $comment;
-            });
+            // // comment this:
+            // // Get the comments of the parent submission
+            // $submission->submission_comments = TaskSubmissionCommentsModel::where('tsc_task_submission_id', $parent_submission->ts_id)->get();
+            // $submission->submission_comments->transform(function ($comment) {
+            //     $comment->commented_by_user = User::where('id', $comment->tsc_commented_by)
+            //         ->select('id', 'name')
+            //         ->first();
+
+            //     // Get media for each comment
+            //     $comment->comment_attachments_categories = $this->mediaService->getMedia('task_submission_comments', $comment->tsc_id);
+
+            //     return $comment;
+            // });
+
+
 
             // Get media for the submission
             $submission->submission_attachments_categories = $this->mediaService->getMedia('task_submissions', $submission->ts_id);
@@ -69,5 +75,36 @@ class SubmissionService
         });
 
         return $submissions;
+    }
+
+    /**
+     * Get the total count of comments for a task submission and all its parent submissions.
+     *
+     * @param int $task_submission_id ID of the task submission to start from.
+     * @return int Total count of comments.
+     */
+
+     public function getCommentCountTillParent($task_submission_id)
+    {
+        $comment_count = 0;
+
+        // Start with the current submission
+        $current_submission = TaskSubmissionsModel::where('ts_id', $task_submission_id)->first();
+
+        // Traverse upwards and accumulate comments for all submissions
+        while ($current_submission) {
+            // Count the comments on the current submission
+            $comment_count += TaskSubmissionCommentsModel::where('tsc_task_submission_id', $current_submission->ts_id)->count();
+
+            // Break if we've reached the parent submission (ts_parent_id = -1)
+            if ($current_submission->ts_parent_id == -1) {
+                break;
+            }
+
+            // Move upwards to the parent submission
+            $current_submission = TaskSubmissionsModel::where('ts_id', $current_submission->ts_parent_id)->first();
+        }
+
+        return $comment_count;
     }
 }

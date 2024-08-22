@@ -79,18 +79,18 @@ class CommentController extends Controller
             ]);
         }
 
-        // Find the parent submission to add the comment on it
-        $parent_submission = TaskSubmissionsModel::where('ts_id', $request->input('task_submission_id'))->first();
-        // Traverse upwards until we find the submission with parent_id = -1
-        while ($parent_submission && $parent_submission->ts_parent_id != -1) {
-            $parent_submission = TaskSubmissionsModel::where('ts_id', $parent_submission->ts_parent_id)->first();
-        }
+        // // Find the parent submission to add the comment on it
+        // $parent_submission = TaskSubmissionsModel::where('ts_id', $request->input('task_submission_id'))->first();
+        // // Traverse upwards until we find the submission with parent_id = -1
+        // while ($parent_submission && $parent_submission->ts_parent_id != -1) {
+        //     $parent_submission = TaskSubmissionsModel::where('ts_id', $parent_submission->ts_parent_id)->first();
+        // }
 
         $current_user = auth()->user();
 
         $comment = new TaskSubmissionCommentsModel();
         $comment->tsc_task_id = (int) $request->input('task_id');
-        $comment->tsc_task_submission_id = $parent_submission->ts_id; // parent submission
+        $comment->tsc_task_submission_id = (int) $request->input('task_submission_id');
         $comment->tsc_parent_id = (int) $request->input('parent_id') ?? -1; // -1 parent
         $comment->tsc_commented_by = $current_user->id;
         $comment->tsc_content = $request->input('comment_content');

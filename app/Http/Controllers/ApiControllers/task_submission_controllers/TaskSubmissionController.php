@@ -210,13 +210,14 @@ class TaskSubmissionController extends Controller
         ], 200);
     }
 
-    // submissions that has no tasks (ts_task_is = -1)
+
     public function getUserSubmissions()
     {
         $user = auth()->user();
 
-        $submissions = TaskSubmissionsModel::where('ts_task_id', '-1')
-            ->where('ts_submitter', $user->id)
+        $submissions = TaskSubmissionsModel::
+        // where('ts_task_id', '-1')
+            where('ts_submitter', $user->id)
             ->orderBy('created_at', 'desc')
             ->paginate(8);
 
