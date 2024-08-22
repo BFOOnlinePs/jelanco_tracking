@@ -9,6 +9,7 @@ use App\Models\TaskSubmissionCommentsModel;
 use App\Models\TaskSubmissionsModel;
 use App\Models\User;
 use App\Services\MediaService;
+use App\Services\SubmissionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -18,10 +19,12 @@ use SplFileInfo;
 class TaskController extends Controller
 {
     protected $mediaService;
+    protected $submissionService;
 
-    public function __construct(MediaService $mediaService)
+    public function __construct(MediaService $mediaService, SubmissionService $submissionService)
     {
         $this->mediaService = $mediaService;
+        $this->submissionService = $submissionService;
     }
 
     public function getAllTasks()
@@ -60,51 +63,7 @@ class TaskController extends Controller
                 $user = User::where('id', $user_id)->select('id', 'name')->first();
                 $submission->submitter_user = $user;
 
-
-
-
-                // for comments
-                $all_submission_versions = collect([$submission]); // Start with the current submission
-                $parent_submission = $submission;
-
-                // Traverse upwards to collect all versions of the submission, including the parent with ts_parent_id = -1
-                while ($parent_submission && $parent_submission->ts_parent_id != -1) {
-                    $parent_submission = TaskSubmissionsModel::where('ts_id', $parent_submission->ts_parent_id)->first();
-                    if ($parent_submission) {
-                        $all_submission_versions->push($parent_submission);
-                    }
-                }
-
-                // Gather the IDs of all versions of the submission
-                $submission_ids = $all_submission_versions->pluck('ts_id');
-
-                // Retrieve all comments related to these submission IDs
-                $submission->submission_comments = TaskSubmissionCommentsModel::whereIn('tsc_task_submission_id', $submission_ids)->get();
-
-
-
-
-                // // Get the comments of the parent submission (if added to the parent)
-                // // first submission of each versions chain (parent = -1), so i can get the comments of the parent
-
-                // $parent_submission = $submission;
-                // // Traverse upwards until we find the submission with parent_id = -1
-                // while ($parent_submission && $parent_submission->ts_parent_id != -1) {
-                //     $parent_submission = TaskSubmissionsModel::where('ts_id', $parent_submission->ts_parent_id)->first();
-                // }
-
-                // // to get the task submission comments (of the parent -1)
-                // $submission->submission_comments = TaskSubmissionCommentsModel::where('tsc_task_submission_id', $parent_submission->ts_id)->get();
-
-
-                //
-                $submission->submission_comments->transform(function ($comment)  use ($submission) {
-                    $comment->commented_by_user = User::where('id', $comment->tsc_commented_by)->select('id', 'name')->first();
-                    $comment->comment_attachments_categories = $this->mediaService->getMedia('task_submission_comments', $comment->tsc_id);
-                    $comment->is_current_version = ($comment->tsc_task_submission_id == $submission->ts_id);
-
-                    return $comment;
-                });
+                $submission->submission_comments = $this->submissionService->getSubmissionComments($submission);
 
                 $submission_media = $this->mediaService->getMedia('task_submissions', $submission->ts_id);
 

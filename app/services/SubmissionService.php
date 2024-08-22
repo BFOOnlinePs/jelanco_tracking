@@ -84,7 +84,7 @@ class SubmissionService
      * @return int Total count of comments.
      */
 
-     public function getCommentCountTillParent($task_submission_id)
+    public function getCommentCountTillParent($task_submission_id)
     {
         $comment_count = 0;
 
@@ -106,5 +106,37 @@ class SubmissionService
         }
 
         return $comment_count;
+    }
+
+
+    public function getSubmissionComments($submission)
+    {
+
+        $all_submission_versions = collect([$submission]); // Start with the current submission
+        $parent_submission = $submission;
+
+        // Traverse upwards to collect all versions of the submission, including the parent with ts_parent_id = -1
+        while ($parent_submission && $parent_submission->ts_parent_id != -1) {
+            $parent_submission = TaskSubmissionsModel::where('ts_id', $parent_submission->ts_parent_id)->first();
+            if ($parent_submission) {
+                $all_submission_versions->push($parent_submission);
+            }
+        }
+
+        // Gather the IDs of all versions of the submission
+        $submission_ids = $all_submission_versions->pluck('ts_id');
+
+        // Retrieve all comments related to these submission IDs
+        $comments = TaskSubmissionCommentsModel::whereIn('tsc_task_submission_id', $submission_ids)->get();
+
+        $comments->transform(function ($comment)  use ($submission) {
+            $comment->commented_by_user = User::where('id', $comment->tsc_commented_by)->select('id', 'name')->first();
+            $comment->comment_attachments_categories = $this->mediaService->getMedia('task_submission_comments', $comment->tsc_id);
+            $comment->is_current_version = ($comment->tsc_task_submission_id == $submission->ts_id);
+
+            return $comment;
+        });
+
+        return $comments;
     }
 }

@@ -9,6 +9,7 @@ use App\Models\TaskSubmissionsModel;
 use App\Models\User;
 use App\Services\FileUploadService;
 use App\Services\MediaService;
+use App\Services\SubmissionService;
 use App\Services\VideoThumbnailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -18,13 +19,19 @@ class CommentController extends Controller
     protected $mediaService;
     protected $thumbnailService;
     protected $fileUploadService;
+    protected $submissionService;
 
     // Inject the FileUploadService, thumbnailService and MediaService into the controller
-    public function __construct(FileUploadService $fileUploadService, VideoThumbnailService $thumbnailService, MediaService $mediaService)
-    {
+    public function __construct(
+        FileUploadService $fileUploadService,
+        VideoThumbnailService $thumbnailService,
+        MediaService $mediaService,
+        SubmissionService $submissionService,
+    ) {
         $this->fileUploadService = $fileUploadService;
         $this->thumbnailService = $thumbnailService;
         $this->mediaService = $mediaService;
+        $this->submissionService = $submissionService;
     }
 
     private function handleAttachmentsUpload($files, $fk_id) // $fk_id = task_submission_comment_id
@@ -121,5 +128,17 @@ class CommentController extends Controller
                 'comment' => $comment
             ]);
         }
+    }
+
+    public function getSubmissionComments($id)
+    {
+        $submission = TaskSubmissionsModel::where('ts_id', $id)->first();
+
+        $submission_comments = $this->submissionService->getSubmissionComments($submission);
+
+        return response()->json([
+            'status' => true,
+            'submission_comments' => $submission_comments
+        ]);
     }
 }
