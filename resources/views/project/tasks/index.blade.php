@@ -334,6 +334,8 @@
                 contentType: false,
                 data: formData,
                 success: function(response) {
+                    console.log(response);
+                    
                     // Check if response.data is defined and has necessary properties
                     if (response.data && response.data.created_at && response.data.tsc_content && response.client && response.client.name) {
                         const createdAt = new Date(response.data.created_at);
@@ -415,6 +417,7 @@
                         $('.image_previews_' + formData.get('tsc_task_submission_id')).empty();
                         $('.video_previews_' + formData.get('tsc_task_submission_id')).empty();
                         $('.file_previews_' + formData.get('tsc_task_submission_id')).empty();
+                        $('.hidde_image_file').remove();
                     } else {
                         console.error('Invalid response structure', response);
                     }
@@ -454,7 +457,7 @@
             }
 
             // Create a hidden file input element for file selection
-            var input = $('<input name="' + inputType + '[]" type="file" multiple accept="' + acceptType + '" style="display:none;" />');
+            var input = $('<input class="hidde_image_file" name="' + inputType + '[]" type="file" multiple accept="' + acceptType + '" style="display:none;" />');
 
             // Append the input to the form
             form.append(input);
