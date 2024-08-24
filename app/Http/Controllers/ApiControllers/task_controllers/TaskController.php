@@ -44,7 +44,7 @@ class TaskController extends Controller
         if ($task) {
             // $task->task_submissions = TaskSubmissionsModel::where('ts_task_id', $id)->get();
 
-            // to get the last submission of each versions chain (not a parent)
+            // to get the last submission of each versions chain
             $task->task_submissions = TaskSubmissionsModel::where('ts_task_id', $id)
                 ->whereNotIn('ts_id', function ($query) {
                     $query->select('ts_parent_id')

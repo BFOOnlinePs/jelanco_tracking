@@ -30,7 +30,6 @@ class SubmissionService
      *
      * @return \Illuminate\Support\Collection The transformed collection of submissions, with additional data such as:
      * - `submitter_user`: The user who submitted the task.
-     * - `submission_comments`: Comments on the submission (including the user who commented and their attachments).
      * - `submission_attachments_categories`: Media attached to the submission.
      */
 
@@ -43,17 +42,18 @@ class SubmissionService
                 ->first();
             $submission->submitter_user = $user;
 
-            // Find the first submission of each version chain
-            $parent_submission = $submission;
-            while ($parent_submission && $parent_submission->ts_parent_id != -1) {
-                $parent_submission = TaskSubmissionsModel::where('ts_id', $parent_submission->ts_parent_id)->first();
-            }
 
             $submission->comments_count = $this->getCommentCountTillParent($submission->ts_id);
 
-
-            // // comment this:
             // // Get the comments of the parent submission
+
+            // Find the first submission of each version chain
+            // $parent_submission = $submission;
+            // while ($parent_submission && $parent_submission->ts_parent_id != -1) {
+            //     $parent_submission = TaskSubmissionsModel::where('ts_id', $parent_submission->ts_parent_id)->first();
+            // }
+
+
             // $submission->submission_comments = TaskSubmissionCommentsModel::where('tsc_task_submission_id', $parent_submission->ts_id)->get();
             // $submission->submission_comments->transform(function ($comment) {
             //     $comment->commented_by_user = User::where('id', $comment->tsc_commented_by)

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\ApiControllers\task_submission_controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\AttachmentsModel;
+use App\Models\TaskModel;
 use App\Models\TaskSubmissionsModel;
 use App\Models\User;
 use App\Services\FileUploadService;
@@ -214,26 +215,45 @@ class TaskSubmissionController extends Controller
     public function getUserSubmissions()
     {
         $user = auth()->user();
-
-        $submissions = TaskSubmissionsModel::
-        // where('ts_task_id', '-1')
-            where('ts_submitter', $user->id)
+        // last version
+        $submissions = TaskSubmissionsModel::where('ts_submitter', $user->id)
+            ->whereNotIn('ts_id', function ($query) {
+                $query->select('ts_parent_id')
+                    ->from('task_submissions')
+                    ->where('ts_parent_id', '!=', -1);
+            })
             ->orderBy('created_at', 'desc')
             ->paginate(8);
 
 
-        // Process the submissions using the service
-        $processedSubmissions = $this->submissionService->processSubmissions($submissions);
+        $processed_submissions = $this->submissionService->processSubmissions($submissions);
+
+
+        $submissions_with_tasks = $submissions->map(function ($submission) {
+            // Check if the submission has a task
+            if ($submission->ts_task_id != -1) {
+                $submission->task_details = TaskModel::where('t_id', $submission->ts_task_id)
+                    ->with('taskCategory:c_id,c_name')
+                    ->with('addedByUser:id,name')
+                    ->first();
+            } else {
+                $submission->task_details = null;
+            }
+
+            return $submission;
+        });
+
+
 
         return response()->json([
             'status' => true,
             'pagination' => [
-                'current_page' => $processedSubmissions->currentPage(),
-                'last_page' => $processedSubmissions->lastPage(),
-                'per_page' => $processedSubmissions->perPage(),
-                'total_items' => $processedSubmissions->total(),
+                'current_page' => $processed_submissions->currentPage(),
+                'last_page' => $processed_submissions->lastPage(),
+                'per_page' => $processed_submissions->perPage(),
+                'total_items' => $processed_submissions->total(),
             ],
-            'submissions' => $processedSubmissions->values(),
+            'submissions' => $submissions_with_tasks->values(),
         ], 200);
     }
 }
