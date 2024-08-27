@@ -37,11 +37,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('tasks/{id}', [TaskController::class, 'updateTask']);
     Route::get('/tasks/added-by-user', [TaskAssignmentController::class, 'getTasksAddedByUser']);
     Route::get('/tasks/assigned-to-user', [TaskAssignmentController::class, 'getTasksAssignedToUser']);
+    Route::get('/tasks/user-not-submitted-tasks', [TaskAssignmentController::class, 'getUserNotSubmittedTasks']);
 
     // tasks submissions
     Route::post('task-submissions', [TaskSubmissionController::class, 'addTaskSubmission']);
     Route::get('task-submissions/{id}', [TaskSubmissionController::class, 'getTaskSubmission']);
     Route::get('task-submissions/{id}/versions', [TaskSubmissionController::class, 'getTaskSubmissionVersions']);
+    Route::get('user-submissions', [TaskSubmissionController::class, 'getUserSubmissions']);
+    Route::get('task-submissions/{id}/comments', [CommentController::class, 'getSubmissionComments']);
 
     // task categories
     Route::get('task-categories', [TaskCategoryController::class, 'getTaskCategories']);
