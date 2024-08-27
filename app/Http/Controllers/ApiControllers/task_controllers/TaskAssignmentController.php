@@ -82,6 +82,7 @@ class TaskAssignmentController extends Controller
                     ->where('task_submissions.ts_submitter', '=', $user_id);
             })
             ->whereNull('task_submissions.ts_task_id') // Ensure there is no submission for this task by the current user
+            ->where('tasks.t_status', 'active')
             ->with('taskCategory:c_id,c_name')
             ->with('addedByUser:id,name')
             ->orderBy('created_at', 'desc')

@@ -223,14 +223,13 @@ class TaskSubmissionController extends Controller
                     ->where('ts_parent_id', '!=', -1);
             })
             ->orderBy('created_at', 'desc')
-            ->paginate(8);
+            ->paginate(4);
 
 
         $processed_submissions = $this->submissionService->processSubmissions($submissions);
 
-
+        // Check if the submission has a task
         $submissions_with_tasks = $submissions->map(function ($submission) {
-            // Check if the submission has a task
             if ($submission->ts_task_id != -1) {
                 $submission->task_details = TaskModel::where('t_id', $submission->ts_task_id)
                     ->with('taskCategory:c_id,c_name')
@@ -242,7 +241,6 @@ class TaskSubmissionController extends Controller
 
             return $submission;
         });
-
 
 
         return response()->json([
