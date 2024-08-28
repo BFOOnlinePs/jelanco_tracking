@@ -111,7 +111,6 @@ class SubmissionService
 
     public function getSubmissionComments($submission)
     {
-
         $all_submission_versions = collect([$submission]); // Start with the current submission
         $parent_submission = $submission;
 
