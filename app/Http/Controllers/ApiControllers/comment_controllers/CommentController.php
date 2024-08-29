@@ -141,15 +141,7 @@ class CommentController extends Controller
         $response = $client->post('http://192.168.1.9:3000', [
             'json' => [
                 'event' => 'new-comment',
-                'data' => [
-                    'comment_id' => $comment->tsc_id,
-                    'task_id' => $comment->tsc_task_id,
-                    'task_submission_id' => $comment->tsc_task_submission_id,
-                    'parent_id' => $comment->tsc_parent_id,
-                    'comment_content' => $comment->tsc_content,
-                    'commented_by_user' => $comment->commented_by_user,
-                    'comment_attachments_categories' => $comment->comment_attachments_categories,
-                ]
+                'data' => $comment
             ]
         ]);
     }
