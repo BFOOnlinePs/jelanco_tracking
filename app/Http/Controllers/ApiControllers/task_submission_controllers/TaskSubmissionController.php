@@ -91,6 +91,7 @@ class TaskSubmissionController extends Controller
             'old_attachments' => 'nullable', // when edit, this contains the old attachments remaining
             'old_attachments.*' => 'string',
         ], [
+            'start_latitude.required' => 'الرجاء تشغيل الموقع',
             'images.*.image' => 'يجب اني يكون الملف نوعه صورة',
             'images.*.mimes' => 'يجب ان يكون نوع الصور: jpg, jpeg, png, gif, svg.',
             'videos.*.mimetypes' => 'يجب أن يكون نوع الفيديو: mp4',
@@ -140,6 +141,21 @@ class TaskSubmissionController extends Controller
             $submission_media = $this->mediaService->getMedia('task_submissions', $task_submission->ts_id);
 
             $task_submission->submission_attachments_categories = $submission_media;
+
+            // $processed_submissions = $this->submissionService->processSubmissions($task_submission);
+
+            // // Check if the submission has a task
+            // if ($processed_submissions->ts_task_id != -1) {
+            //     $processed_submissions->task_details = TaskModel::where('t_id', $submission->ts_task_id)
+            //         ->with('taskCategory:c_id,c_name')
+            //         ->with('addedByUser:id,name')
+            //         ->first();
+            // } else {
+            //     $submission->task_details = null;
+            // }
+
+            // return $submission;
+
 
             return response()->json([
                 'status' => true,
@@ -254,4 +270,5 @@ class TaskSubmissionController extends Controller
             'submissions' => $submissions_with_tasks->values(),
         ], 200);
     }
+
 }
