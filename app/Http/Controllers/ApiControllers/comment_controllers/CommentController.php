@@ -122,6 +122,9 @@ class CommentController extends Controller
 
             $comment->comment_attachments_categories = $comment_media;
 
+            // Emit the event to the Socket.IO server
+            $this->emitSocketIOEvent($comment);
+
             return response()->json([
                 'status' => true,
                 'message' => 'تم إضافة التعليق بنجاح',
@@ -130,6 +133,18 @@ class CommentController extends Controller
         }
     }
 
+
+    protected function emitSocketIOEvent($comment)
+    {
+        $client = new \GuzzleHttp\Client();
+        $url = config('constants.socket_io_url');
+        $client->post($url, [
+            'json' => [
+                'event' => 'new-comment',
+                // 'dataaaa' => $comment
+            ]
+        ]);
+    }
     public function getSubmissionComments($id)
     {
         $submission = TaskSubmissionsModel::where('ts_id', $id)->first();
@@ -140,5 +155,15 @@ class CommentController extends Controller
             'status' => true,
             'submission_comments' => $submission_comments
         ]);
+    }
+
+    public function getSubmissionCommentCount($id)
+    {
+        $comments_count = $this->submissionService->getCommentCountTillParent($id);
+
+        return response()->json([
+            'status' => true,
+            'comments_count' => $comments_count
+        ], 200);
     }
 }
