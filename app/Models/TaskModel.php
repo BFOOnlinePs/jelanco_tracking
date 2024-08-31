@@ -33,5 +33,8 @@ class TaskModel extends Model
         return $this->belongsTo(User::class, 't_added_by', 'id');
     }
 
-
+    public function submissions()
+    {
+        return $this->hasMany(TaskSubmissionsModel::class , 'ts_task_id' , 't_id');
+    }
 }

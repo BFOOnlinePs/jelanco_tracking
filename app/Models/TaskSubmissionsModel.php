@@ -21,4 +21,14 @@ class TaskSubmissionsModel extends Model
     //     'ts_actual_end_time',
 
     // ];
+
+    public function submitter()
+    {
+        return $this->belongsTo(User::class, 'ts_submitter', 'id');
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(TaskSubmissionCommentsModel::class , 'tsc_task_submission_id' , 'ts_id');
+    }
 }
