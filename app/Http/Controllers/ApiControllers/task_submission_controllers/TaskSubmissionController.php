@@ -83,6 +83,7 @@ class TaskSubmissionController extends Controller
             'parent_id' => 'int', // -1 when no parent (the original/first submission)
             'task_id' => 'required', // -1 when submission has no parent
             'content' => 'required',
+            'categories' => 'nullable',
             'start_latitude' => 'required',
             'start_longitude' => 'required',
             'images.*' => 'image|mimes:jpg,png,jpeg,gif,svg',
@@ -114,6 +115,7 @@ class TaskSubmissionController extends Controller
         $task_submission->ts_task_id = (int) $request->input('task_id');
         $task_submission->ts_submitter = $submitter;
         $task_submission->ts_content = $request->input('content');
+        $task_submission->ts_categories = $request->input('categories');
         $task_submission->ts_start_latitude = $request->input('start_latitude');
         $task_submission->ts_start_longitude = $request->input('start_longitude');
         $task_submission->ts_actual_start_time = $start_time;
@@ -270,5 +272,4 @@ class TaskSubmissionController extends Controller
             'submissions' => $submissions_with_tasks->values(),
         ], 200);
     }
-
 }
