@@ -13,7 +13,31 @@ class PermissionsTableSeeder extends Seeder
      */
     public function run(): void
     {
-        Permission::create(['name' => 'add_users' , 'guard_name' => 'sanctum']);
-        Permission::create(['name' => 'edit_users' , 'guard_name' => 'sanctum']);
+        $permissions = [
+            'اضافة مستخدم',
+            'تعديل مستخدم',
+            'حذف مستخدم',
+            'تعديل الحالة',
+            'عرض المستخدمين',
+            'اضافة مهمة',
+            'تعديل مهمة',
+            'حذف مهمة',
+            'عرض المهام',
+            'تعيين مهمة',
+            'تسليم مهمة',
+            'اضافة فئة لمهمة',
+            'تعديل فئة لمهمة',
+            'عرض فئات المهام',
+            'اضافة تعليق',
+            'اضافة دور',
+            'تعديل دور',
+            'عرض الادوار',
+        ];
+
+        foreach ($permissions as $permission) {
+            Permission::updateOrCreate(
+                ['name' => $permission, 'guard_name' => 'web'],[] 
+            );
+        }  
     }
 }
