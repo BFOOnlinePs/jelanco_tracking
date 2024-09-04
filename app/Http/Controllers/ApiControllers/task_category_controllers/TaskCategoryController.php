@@ -17,4 +17,14 @@ class TaskCategoryController extends Controller
             'task_categories' => $categories,
         ]);
     }
+
+    // public function getSubmissionCategories()
+    // {
+    //     $categories = TaskCategoriesModel::get();
+
+    //     return response()->json([
+    //         'status' => true,
+    //         'task_categories' => $categories,
+    //     ]);
+    // }
 }

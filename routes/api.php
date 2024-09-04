@@ -46,14 +46,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('task-submissions/{id}', [TaskSubmissionController::class, 'getTaskSubmission']);
     Route::get('task-submissions/{id}/versions', [TaskSubmissionController::class, 'getTaskSubmissionVersions']);
     Route::get('user-submissions', [TaskSubmissionController::class, 'getUserSubmissions']);
-    Route::get('task-submissions/{id}/comments', [CommentController::class, 'getSubmissionComments']);
-    Route::get('task-submissions/{id}/comments/count', [CommentController::class, 'getSubmissionCommentCount']);
 
     // task categories
     Route::get('task-categories', [TaskCategoryController::class, 'getTaskCategories']);
 
     // comments
     Route::post('comments', [CommentController::class, 'addTaskSubmissionComment']);
+    Route::get('task-submissions/{id}/comments', [CommentController::class, 'getSubmissionComments']);
+    Route::get('task-submissions/{id}/comments/count', [CommentController::class, 'getSubmissionCommentCount']);
 
 
     Route::group(['prefix' => 'users'], function () {
