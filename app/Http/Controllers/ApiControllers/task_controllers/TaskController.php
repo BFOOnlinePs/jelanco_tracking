@@ -9,6 +9,7 @@ use App\Models\TaskSubmissionCommentsModel;
 use App\Models\TaskSubmissionsModel;
 use App\Models\User;
 use App\Services\MediaService;
+use App\Services\SubmissionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -18,10 +19,12 @@ use SplFileInfo;
 class TaskController extends Controller
 {
     protected $mediaService;
+    protected $submissionService;
 
-    public function __construct(MediaService $mediaService)
+    public function __construct(MediaService $mediaService, SubmissionService $submissionService)
     {
         $this->mediaService = $mediaService;
+        $this->submissionService = $submissionService;
     }
 
     public function getAllTasks()
@@ -41,7 +44,7 @@ class TaskController extends Controller
         if ($task) {
             // $task->task_submissions = TaskSubmissionsModel::where('ts_task_id', $id)->get();
 
-            // to get the last submission of each versions chain (not a parent)
+            // to get the last submission of each versions chain
             $task->task_submissions = TaskSubmissionsModel::where('ts_task_id', $id)
                 ->whereNotIn('ts_id', function ($query) {
                     $query->select('ts_parent_id')
@@ -53,29 +56,14 @@ class TaskController extends Controller
 
             $task->assigned_to_users = User::whereIn('id', json_decode($task->t_assigned_to))->select('id', 'name')->get();
 
+
             $task->task_submissions->transform(function ($submission) {
                 // to get the submitter user
                 $user_id = $submission->ts_submitter;
                 $user = User::where('id', $user_id)->select('id', 'name')->first();
                 $submission->submitter_user = $user;
 
-                // first submission of each versions chain (parent = -1), so i can get the comments of the parent
-
-                $parent_submission = $submission;
-                // Traverse upwards until we find the submission with parent_id = -1
-                while ($parent_submission && $parent_submission->ts_parent_id != -1) {
-                    $parent_submission = TaskSubmissionsModel::where('ts_id', $parent_submission->ts_parent_id)->first();
-                }
-
-                // to get the task submission comments (of the parent -1)
-                $submission->submission_comments = TaskSubmissionCommentsModel::where('tsc_task_submission_id', $parent_submission->ts_id)->get();
-                $submission->submission_comments->transform(function ($comment) {
-                    $comment->commented_by_user = User::where('id', $comment->tsc_commented_by)->select('id', 'name')->first();
-                    $comment_media = $this->mediaService->getMedia('task_submission_comments', $comment->tsc_id);
-
-                    $comment->comment_attachments_categories = $comment_media;
-                    return $comment;
-                });
+                $submission->submission_comments = $this->submissionService->getSubmissionComments($submission);
 
                 $submission_media = $this->mediaService->getMedia('task_submissions', $submission->ts_id);
 
@@ -91,11 +79,12 @@ class TaskController extends Controller
         }
 
         return response()->json([
-
+            // paginate
             'status' => true,
             'task' => $task,
         ]);
     }
+
 
     public function addTask(Request $request)
     {
