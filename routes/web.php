@@ -34,7 +34,7 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('/update', [App\Http\Controllers\UsersController::class , 'update'])->name('users.update');
     });
     Route::group(['prefix' => 'permissions'], function () {
-        Route::get('/index', [App\Http\Controllers\PermissionController::class , 'index'])->name('permissions.index')->middleware('can:عرض الادوار');
+        Route::get('/index', [App\Http\Controllers\PermissionController::class , 'index'])->name('permissions.index');
         Route::get('/add', [App\Http\Controllers\PermissionController::class , 'add'])->name('permissions.add');
         Route::post('/create', [App\Http\Controllers\PermissionController::class , 'create'])->name('permissions.create');
         Route::get('/edit/{id}', [App\Http\Controllers\PermissionController::class , 'edit'])->name('permissions.edit');
