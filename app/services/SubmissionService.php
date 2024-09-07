@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\TaskModel;
 use App\Models\User;
 use App\Models\TaskSubmissionsModel;
 use App\Models\TaskSubmissionCommentsModel;
@@ -36,45 +37,66 @@ class SubmissionService
     public function processSubmissions($submissions)
     {
         $submissions->getCollection()->transform(function ($submission) {
-            // Get the submitter user
-            $user = User::where('id', $submission->ts_submitter)
-                ->select('id', 'name')
-                ->first();
-            $submission->submitter_user = $user;
-
-
-            $submission->comments_count = $this->getCommentCountTillParent($submission->ts_id);
-
-            // // Get the comments of the parent submission
-
-            // Find the first submission of each version chain
-            // $parent_submission = $submission;
-            // while ($parent_submission && $parent_submission->ts_parent_id != -1) {
-            //     $parent_submission = TaskSubmissionsModel::where('ts_id', $parent_submission->ts_parent_id)->first();
-            // }
-
-
-            // $submission->submission_comments = TaskSubmissionCommentsModel::where('tsc_task_submission_id', $parent_submission->ts_id)->get();
-            // $submission->submission_comments->transform(function ($comment) {
-            //     $comment->commented_by_user = User::where('id', $comment->tsc_commented_by)
-            //         ->select('id', 'name')
-            //         ->first();
-
-            //     // Get media for each comment
-            //     $comment->comment_attachments_categories = $this->mediaService->getMedia('task_submission_comments', $comment->tsc_id);
-
-            //     return $comment;
-            // });
-
-
-
-            // Get media for the submission
-            $submission->submission_attachments_categories = $this->mediaService->getMedia('task_submissions', $submission->ts_id);
-
+            $submission = $this->processSubmission($submission);
             return $submission;
         });
 
         return $submissions;
+    }
+
+    public function processSubmission($submission)
+    {
+        // Get the submitter user
+        $user = User::where('id', $submission->ts_submitter)
+            ->select('id', 'name')
+            ->first();
+        $submission->submitter_user = $user;
+
+
+        $submission->comments_count = $this->getCommentCountTillParent($submission->ts_id);
+
+        // // Get the comments of the parent submission
+
+        // Find the first submission of each version chain
+        // $parent_submission = $submission;
+        // while ($parent_submission && $parent_submission->ts_parent_id != -1) {
+        //     $parent_submission = TaskSubmissionsModel::where('ts_id', $parent_submission->ts_parent_id)->first();
+        // }
+
+
+        // $submission->submission_comments = TaskSubmissionCommentsModel::where('tsc_task_submission_id', $parent_submission->ts_id)->get();
+        // $submission->submission_comments->transform(function ($comment) {
+        //     $comment->commented_by_user = User::where('id', $comment->tsc_commented_by)
+        //         ->select('id', 'name')
+        //         ->first();
+
+        //     // Get media for each comment
+        //     $comment->comment_attachments_categories = $this->mediaService->getMedia('task_submission_comments', $comment->tsc_id);
+
+        //     return $comment;
+        // });
+
+
+
+        // Get media for the submission
+        $submission->submission_attachments_categories = $this->mediaService->getMedia('task_submissions', $submission->ts_id);
+
+        return $submission;
+    }
+
+    // check if submission has a task and return it
+
+    public function getSubmissionTask($submission)
+    {
+        if ($submission->ts_task_id != -1) {
+            $submission->task_details = TaskModel::where('t_id', $submission->ts_task_id)
+                ->with('taskCategory:c_id,c_name')
+                ->with('addedByUser:id,name')
+                ->first();
+        } else {
+            $submission->task_details = null;
+        }
+        return $submission;
     }
 
     /**

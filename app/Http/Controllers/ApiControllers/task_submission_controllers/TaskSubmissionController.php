@@ -206,28 +206,24 @@ class TaskSubmissionController extends Controller
         ]);
     }
 
-    public function getTaskSubmission($id)
+    public function getTaskSubmissionWithTaskAndComments($id)
     {
-        // $validator = Validator::make($request->all(), [
-        //     'task_submission_id' => 'required|exists:task_submissions,ts_id',
-        // ]);
-
-        // if ($validator->fails()) {
-        //     return response()->json([
-        //         'status' => false,
-        //         'message' => $validator->errors()->first(),
-        //     ], 422);
-        // }
-
-        // if id not exist
-
         $task_submission = TaskSubmissionsModel::where('ts_id', $id)->first();
+
+        $processed_submission = $this->submissionService->processSubmission($task_submission);
+
+        // Check if the submission has a task
+        $this->submissionService->getSubmissionTask($processed_submission);
+
+        // get the comments
+        $processed_submission->submission_comments = $this->submissionService->getSubmissionComments($processed_submission);
 
         return response()->json([
             'status' => true,
             'task_submission' => $task_submission
         ], 200);
     }
+
 
 
     public function getUserSubmissions()
@@ -244,30 +240,22 @@ class TaskSubmissionController extends Controller
             ->paginate(4);
 
 
-        $processed_submissions = $this->submissionService->processSubmissions($submissions);
+        $this->submissionService->processSubmissions($submissions);
 
         // Check if the submission has a task
         $submissions_with_tasks = $submissions->map(function ($submission) {
-            if ($submission->ts_task_id != -1) {
-                $submission->task_details = TaskModel::where('t_id', $submission->ts_task_id)
-                    ->with('taskCategory:c_id,c_name')
-                    ->with('addedByUser:id,name')
-                    ->first();
-            } else {
-                $submission->task_details = null;
-            }
-
-            return $submission;
+            return $this->submissionService->getSubmissionTask($submission);
         });
 
 
+        // they have the same length
         return response()->json([
             'status' => true,
             'pagination' => [
-                'current_page' => $processed_submissions->currentPage(),
-                'last_page' => $processed_submissions->lastPage(),
-                'per_page' => $processed_submissions->perPage(),
-                'total_items' => $processed_submissions->total(),
+                'current_page' => $submissions->currentPage(),
+                'last_page' => $submissions->lastPage(),
+                'per_page' => $submissions->perPage(),
+                'total_items' => $submissions->total(),
             ],
             'submissions' => $submissions_with_tasks->values(),
         ], 200);
