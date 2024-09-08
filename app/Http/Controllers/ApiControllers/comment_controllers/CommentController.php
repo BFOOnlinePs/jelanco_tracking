@@ -11,6 +11,7 @@ use App\Services\FileUploadService;
 use App\Services\MediaService;
 use App\Services\SubmissionService;
 use App\Services\VideoThumbnailService;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -122,8 +123,14 @@ class CommentController extends Controller
 
             $comment->comment_attachments_categories = $comment_media;
 
-            // Emit the event to the Socket.IO server
-            $this->emitSocketIOEvent($comment);
+
+            try {
+                // Emit the event to the Socket.IO server
+                $this->emitSocketIOEvent($comment);
+            } catch (Exception $e) {
+
+            };
+
 
             return response()->json([
                 'status' => true,

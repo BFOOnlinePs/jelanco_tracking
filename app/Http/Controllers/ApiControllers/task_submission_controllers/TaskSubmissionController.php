@@ -210,13 +210,13 @@ class TaskSubmissionController extends Controller
     {
         $task_submission = TaskSubmissionsModel::where('ts_id', $id)->first();
 
-        $processed_submission = $this->submissionService->processSubmission($task_submission);
+       $this->submissionService->processSubmission($task_submission);
 
         // Check if the submission has a task
-        $this->submissionService->getSubmissionTask($processed_submission);
+        $this->submissionService->getSubmissionTask($task_submission, true);
 
         // get the comments
-        $processed_submission->submission_comments = $this->submissionService->getSubmissionComments($processed_submission);
+        $task_submission->submission_comments = $this->submissionService->getSubmissionComments($task_submission);
 
         return response()->json([
             'status' => true,

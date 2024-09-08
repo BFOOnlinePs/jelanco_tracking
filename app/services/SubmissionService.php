@@ -85,18 +85,36 @@ class SubmissionService
     }
 
     // check if submission has a task and return it
-
-    public function getSubmissionTask($submission)
+    public function getSubmissionTask($submission, $includeAssignedUsers = false)
     {
         if ($submission->ts_task_id != -1) {
-            $submission->task_details = TaskModel::where('t_id', $submission->ts_task_id)
+            $task_details = TaskModel::where('t_id', $submission->ts_task_id)
                 ->with('taskCategory:c_id,c_name')
                 ->with('addedByUser:id,name')
                 ->first();
+
+            // Check if assigned users should be fetched
+            if ($includeAssignedUsers) {
+                $task_details->assigned_to_users = $this->getAssignedUsers($task_details->t_assigned_to);
+            }
+
+            $submission->task_details = $task_details;
         } else {
             $submission->task_details = null;
         }
         return $submission;
+    }
+
+    public function getAssignedUsers($assigned_to) // ex: ["1","2","3"] as String
+    {
+        // Decode the JSON string into an array
+        $user_ids = json_decode($assigned_to, true);
+        if (is_array($user_ids) && !empty($user_ids)) {
+            return User::whereIn('id', $user_ids)->select('id', 'name')->get();
+        }
+
+        // Return an empty collection if $user_ids is not valid
+        return collect();
     }
 
     /**
