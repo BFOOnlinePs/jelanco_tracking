@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\TaskCategoriesModel;
 use App\Models\TaskModel;
 use App\Models\User;
 use App\Models\TaskSubmissionsModel;
@@ -44,17 +45,22 @@ class SubmissionService
         return $submissions;
     }
 
-    public function processSubmission($submission)
+    public function processSubmission($submission, $includeCategories = false)
     {
         // Get the submitter user
         $user = User::where('id', $submission->ts_submitter)
             ->select('id', 'name')
             ->first();
+
         $submission->submitter_user = $user;
 
 
         $submission->comments_count = $this->getCommentCountTillParent($submission->ts_id);
 
+        // submission categories
+        if ($includeCategories) {
+            $submission->submission_categories = $this->getSubmissionCategories($submission->ts_categories);
+        }
         // // Get the comments of the parent submission
 
         // Find the first submission of each version chain
@@ -115,6 +121,15 @@ class SubmissionService
 
         // Return an empty collection if $user_ids is not valid
         return collect();
+    }
+
+    public function getSubmissionCategories($categories) // ex: ["1","2","3"] as String
+    {
+        // Decode the JSON string into an array
+        $category_ids = json_decode($categories, true);
+        if (is_array($category_ids) && !empty($category_ids)) {
+            return TaskCategoriesModel::whereIn('c_id', $category_ids)->select('c_id', 'c_name')->get();
+        }
     }
 
     /**

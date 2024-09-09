@@ -140,11 +140,16 @@ class TaskSubmissionController extends Controller
                 $this->handleOldAttachments($request->old_attachments, $task_submission,);
             }
 
-            $submission_media = $this->mediaService->getMedia('task_submissions', $task_submission->ts_id);
+            // $submission_media = $this->mediaService->getMedia('task_submissions', $task_submission->ts_id);
 
-            $task_submission->submission_attachments_categories = $submission_media;
+            // $task_submission->submission_attachments_categories = $submission_media;
 
-            // $processed_submissions = $this->submissionService->processSubmissions($task_submission);
+
+
+            $this->submissionService->processSubmission($task_submission);
+
+            $processed_submissions = $this->submissionService->getSubmissionTask($task_submission);
+
 
             // // Check if the submission has a task
             // if ($processed_submissions->ts_task_id != -1) {
@@ -162,7 +167,7 @@ class TaskSubmissionController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'تم تسليم المهمة بنجاح',
-                'task_submission' => $task_submission
+                'task_submission' => $processed_submissions
             ], 200);
         }
     }
@@ -210,7 +215,7 @@ class TaskSubmissionController extends Controller
     {
         $task_submission = TaskSubmissionsModel::where('ts_id', $id)->first();
 
-       $this->submissionService->processSubmission($task_submission);
+        $this->submissionService->processSubmission($task_submission, true);
 
         // Check if the submission has a task
         $this->submissionService->getSubmissionTask($task_submission, true);
@@ -259,5 +264,22 @@ class TaskSubmissionController extends Controller
             ],
             'submissions' => $submissions_with_tasks->values(),
         ], 200);
+    }
+
+    public function getSubmissionsForManagerEmployees()
+    {
+        $user = auth()->user();
+
+        // it should have the permission
+
+
+        // $submissions = TaskSubmissionsModel::where('ts_submitter', $user->id)
+        //     ->whereNotIn('ts_id', function ($query) {
+        //         $query->select('ts_parent_id')
+        //             ->from('task_submissions')
+        //             ->where('ts_parent_id', '!=', -1);
+        //     })
+        //     ->orderBy('created_at', 'desc')
+        //     ->paginate(4);
     }
 }

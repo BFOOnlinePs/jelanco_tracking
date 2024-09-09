@@ -32,6 +32,7 @@ class LoginController extends Controller
         if (Auth::attempt($credentials)) {
             $token = $request->user()->createToken('api-token')->plainTextToken;
             $user = User::find(auth()->user()->id);
+            $role = $user->getRoleNames()->first();
             $permissions = $user->getAllPermissions();
 
             return response([
@@ -39,6 +40,7 @@ class LoginController extends Controller
                 'message' => 'تم تسجيل الدخول بنجاح',
                 'user' => auth()->user(),
                 'token' => $token,
+                'role' => $role,
                 'permissions' => $permissions
             ], 200);
         } else {
