@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\ApiControllers\task_submission_controllers;
 
+use App\Helpers\SystemPermissions;
 use App\Http\Controllers\Controller;
 use App\Models\AttachmentsModel;
 use App\Models\TaskModel;
 use App\Models\TaskSubmissionsModel;
 use App\Models\User;
 use App\Services\FileUploadService;
+use App\Services\ManagerEmployeesService;
 use App\Services\MediaService;
 use App\Services\SubmissionService;
 use App\Services\VideoThumbnailService;
@@ -21,14 +23,16 @@ class TaskSubmissionController extends Controller
     protected $thumbnailService;
     protected $fileUploadService;
     protected $submissionService;
+    protected $managerEmployeesService;
 
     // Inject the FileUploadService, thumbnailService and MediaService into the controller
-    public function __construct(FileUploadService $fileUploadService, VideoThumbnailService $thumbnailService, MediaService $mediaService, SubmissionService $submissionService)
+    public function __construct(FileUploadService $fileUploadService, VideoThumbnailService $thumbnailService, MediaService $mediaService, SubmissionService $submissionService, ManagerEmployeesService $managerEmployeesService)
     {
         $this->fileUploadService = $fileUploadService;
         $this->thumbnailService = $thumbnailService;
         $this->mediaService = $mediaService;
         $this->submissionService = $submissionService;
+        $this->managerEmployeesService = $managerEmployeesService;
     }
 
 
@@ -151,19 +155,6 @@ class TaskSubmissionController extends Controller
             $processed_submissions = $this->submissionService->getSubmissionTask($task_submission);
 
 
-            // // Check if the submission has a task
-            // if ($processed_submissions->ts_task_id != -1) {
-            //     $processed_submissions->task_details = TaskModel::where('t_id', $submission->ts_task_id)
-            //         ->with('taskCategory:c_id,c_name')
-            //         ->with('addedByUser:id,name')
-            //         ->first();
-            // } else {
-            //     $submission->task_details = null;
-            // }
-
-            // return $submission;
-
-
             return response()->json([
                 'status' => true,
                 'message' => 'تم تسليم المهمة بنجاح',
@@ -231,11 +222,29 @@ class TaskSubmissionController extends Controller
 
 
 
+    // get submissions of the current user
+    // + submissions of his employees (all submissions even if another manager add them) - if he has the permission
+    // for home screen
     public function getUserSubmissions()
     {
         $user = auth()->user();
+
+        $manager_employee_ids = [];
+
+        // $user = User::find(auth()->user()->id);
+
+        // return $user->getRoleNames()->first();
+
+        // if he has the permission
+        if (SystemPermissions::hasPermission(SystemPermissions::VIEW_MY_EMPLOYEES_SUBMISSIONS)) {
+            $manager_employee_ids = $this->managerEmployeesService->getEmployeesByManagerId($user->id);
+        }
+
+        // Combine the user ID with the employee IDs
+        $allSubmitters = array_merge([$user->id], $manager_employee_ids);
+
         // last version
-        $submissions = TaskSubmissionsModel::where('ts_submitter', $user->id)
+        $submissions = TaskSubmissionsModel::whereIn('ts_submitter', $allSubmitters)
             ->whereNotIn('ts_id', function ($query) {
                 $query->select('ts_parent_id')
                     ->from('task_submissions')
@@ -243,7 +252,6 @@ class TaskSubmissionController extends Controller
             })
             ->orderBy('created_at', 'desc')
             ->paginate(4);
-
 
         $this->submissionService->processSubmissions($submissions);
 
