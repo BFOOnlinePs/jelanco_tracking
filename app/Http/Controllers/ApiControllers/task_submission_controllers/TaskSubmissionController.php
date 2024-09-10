@@ -231,10 +231,6 @@ class TaskSubmissionController extends Controller
 
         $manager_employee_ids = [];
 
-        // $user = User::find(auth()->user()->id);
-
-        // return $user->getRoleNames()->first();
-
         // if he has the permission
         if (SystemPermissions::hasPermission(SystemPermissions::VIEW_MY_EMPLOYEES_SUBMISSIONS)) {
             $manager_employee_ids = $this->managerEmployeesService->getEmployeesByManagerId($user->id);
@@ -245,6 +241,40 @@ class TaskSubmissionController extends Controller
 
         // last version
         $submissions = TaskSubmissionsModel::whereIn('ts_submitter', $allSubmitters)
+            ->whereNotIn('ts_id', function ($query) {
+                $query->select('ts_parent_id')
+                    ->from('task_submissions')
+                    ->where('ts_parent_id', '!=', -1);
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(4);
+
+        $this->submissionService->processSubmissions($submissions);
+
+        // Check if the submission has a task
+        $submissions_with_tasks = $submissions->map(function ($submission) {
+            return $this->submissionService->getSubmissionTask($submission);
+        });
+
+
+        // they have the same length
+        return response()->json([
+            'status' => true,
+            'pagination' => [
+                'current_page' => $submissions->currentPage(),
+                'last_page' => $submissions->lastPage(),
+                'per_page' => $submissions->perPage(),
+                'total_items' => $submissions->total(),
+            ],
+            'submissions' => $submissions_with_tasks->values(),
+        ], 200);
+    }
+
+
+    public function getUserSubmissionsById($user_id)
+    {
+        // last version
+        $submissions = TaskSubmissionsModel::where('ts_submitter', $user_id)
             ->whereNotIn('ts_id', function ($query) {
                 $query->select('ts_parent_id')
                     ->from('task_submissions')
