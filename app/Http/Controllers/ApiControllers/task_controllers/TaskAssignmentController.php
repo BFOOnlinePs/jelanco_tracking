@@ -49,7 +49,7 @@ class TaskAssignmentController extends Controller
         $userId = auth()->user()->id;
         $tasks = TaskModel::whereJsonContains('t_assigned_to', (string)$userId)
             ->with('taskCategory:c_id,c_name')
-            ->with('addedByUser:id,name')
+            ->with('addedByUser:id,name,image')
             ->orderBy('created_at', 'desc')
             ->paginate(6);
 
@@ -90,7 +90,7 @@ class TaskAssignmentController extends Controller
             ->whereNull('task_submissions.ts_task_id') // Ensure there is no submission for this task by the current user
             ->where('tasks.t_status', 'active')
             ->with('taskCategory:c_id,c_name')
-            ->with('addedByUser:id,name')
+            ->with('addedByUser:id,name,image')
             ->orderBy('created_at', 'desc')
             ->select('tasks.*')
             ->paginate($perPage);

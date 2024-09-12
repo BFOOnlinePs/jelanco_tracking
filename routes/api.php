@@ -50,6 +50,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     // user profile
     Route::get('users/profile/{user_id}', [userController::class, 'getUserProfileById']);
+    Route::post('users/profile/image', [userController::class, 'updateProfileImage']);
+    Route::get('users/{id}', [userController::class, 'getUserById']);
 
     // task categories
     Route::get('task-categories', [TaskCategoryController::class, 'getTaskCategories']);

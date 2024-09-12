@@ -11,6 +11,7 @@ return [
     'comments_attachments_path' => 'comments_attachments/',
     'submissions_attachments_path' => 'uploads/',
     'thumbnail_path' => 'thumbnails/',
+    'profile_images_path' => 'profile_images/',
 
 
 ];

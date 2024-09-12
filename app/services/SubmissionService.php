@@ -49,7 +49,7 @@ class SubmissionService
     {
         // Get the submitter user
         $user = User::where('id', $submission->ts_submitter)
-            ->select('id', 'name')
+            ->select('id', 'name', 'image')
             ->first();
 
         $submission->submitter_user = $user;
@@ -96,7 +96,7 @@ class SubmissionService
         if ($submission->ts_task_id != -1) {
             $task_details = TaskModel::where('t_id', $submission->ts_task_id)
                 ->with('taskCategory:c_id,c_name')
-                ->with('addedByUser:id,name')
+                ->with('addedByUser:id,name,image')
                 ->first();
 
             // Check if assigned users should be fetched
@@ -184,7 +184,7 @@ class SubmissionService
         $comments = TaskSubmissionCommentsModel::whereIn('tsc_task_submission_id', $submission_ids)->get();
 
         $comments->transform(function ($comment)  use ($submission) {
-            $comment->commented_by_user = User::where('id', $comment->tsc_commented_by)->select('id', 'name')->first();
+            $comment->commented_by_user = User::where('id', $comment->tsc_commented_by)->select('id', 'name', 'image')->first();
             $comment->comment_attachments_categories = $this->mediaService->getMedia('task_submission_comments', $comment->tsc_id);
             $comment->is_current_version = ($comment->tsc_task_submission_id == $submission->ts_id);
 
