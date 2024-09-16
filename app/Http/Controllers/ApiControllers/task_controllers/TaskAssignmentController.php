@@ -89,10 +89,10 @@ class TaskAssignmentController extends Controller
             })
             ->whereNull('task_submissions.ts_task_id') // Ensure there is no submission for this task by the current user
             ->where('tasks.t_status', 'active')
-            ->with('taskCategory:c_id,c_name')
+            // ->with('taskCategory:c_id,c_name')
             ->with('addedByUser:id,name,image')
             ->orderBy('created_at', 'desc')
-            ->select('tasks.*')
+            ->select('tasks.t_id', 'tasks.t_content', 'tasks.t_added_by', 'tasks.created_at')
             ->paginate($perPage);
 
 
