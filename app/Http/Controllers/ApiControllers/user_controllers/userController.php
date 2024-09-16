@@ -116,10 +116,10 @@ class userController extends Controller
         ]);
     }
 
-    // only id and name
+    // only id, name and image
     public function getAllUsers()
     {
-        $users = User::select('id', 'name')->get();
+        $users = User::select('id', 'name', 'image')->get();
 
         return response()->json([
             'status' => true,

@@ -15,6 +15,7 @@ class ManagerEmployeesService
      */
     public function getEmployeesByManagerId($managerId, $withNames = false)
     {
+        // TODO: user the model to get the data
         $employeeIds = DB::table('manager_employees')
             ->where('me_manager_id', $managerId)
             ->pluck('me_employee_ids')
@@ -22,10 +23,11 @@ class ManagerEmployeesService
 
         $employeeIds = array_map('intval', json_decode($employeeIds, true) ?? []);
 
+        // with names and images
         if ($withNames) {
             return DB::table('users')
                 ->whereIn('id', $employeeIds)
-                ->select('id', 'name')
+                ->select('id', 'name', 'image')
                 ->get()
                 ->toArray();
         }

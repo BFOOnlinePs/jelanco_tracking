@@ -68,7 +68,7 @@ class CommentController extends Controller
         $validator = Validator::make($request->all(), [
             'task_id' => 'required|int',
             'task_submission_id' => 'required|int',
-            'parent_id' => 'required|int', // when reply
+            'parent_id' => 'required|int', // when reply - not used yet
             'comment_content' => 'required',
             'images.*' => 'image|mimes:jpg,png,jpeg,gif,svg',
             'videos.*' => 'mimetypes:video/mp4',
@@ -105,7 +105,7 @@ class CommentController extends Controller
 
         if ($comment->save()) {
 
-            $comment->commented_by_user = User::where('id', $current_user->id)->select('id', 'name')->first();
+            $comment->commented_by_user = User::where('id', $current_user->id)->select('id', 'name', 'image')->first();
 
             if ($request->hasFile('images')) {
                 $this->handleAttachmentsUpload($request->images, $comment->tsc_id,);

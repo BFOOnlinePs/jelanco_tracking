@@ -4,6 +4,7 @@ use App\Http\Controllers\ApiControllers\auth_controllers\LoginController;
 use App\Http\Controllers\ApiControllers\auth_controllers\LogoutController;
 use App\Http\Controllers\ApiControllers\auth_controllers\SignupController;
 use App\Http\Controllers\ApiControllers\comment_controllers\CommentController;
+use App\Http\Controllers\ApiControllers\manager_employees_controllers\ManagerEmployeeController;
 use App\Http\Controllers\ApiControllers\task_category_controllers\TaskCategoryController;
 use App\Http\Controllers\ApiControllers\task_controllers\TaskAssignmentController;
 use App\Http\Controllers\ApiControllers\task_controllers\TaskController;
@@ -48,6 +49,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('user-submissions', [TaskSubmissionController::class, 'getUserSubmissions']);
     Route::get('task-submissions/{id}/task-and-comments', [TaskSubmissionController::class, 'getTaskSubmissionWithTaskAndComments']);
 
+    // manager and employees
+    Route::get('users/employees', [ManagerEmployeeController::class, 'getManagerEmployees']);
+
+
     // user profile
     Route::get('users/profile/{user_id}', [userController::class, 'getUserProfileById']);
     Route::post('users/profile/image', [userController::class, 'updateProfileImage']);
@@ -60,7 +65,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('comments', [CommentController::class, 'addTaskSubmissionComment']);
     Route::get('task-submissions/{id}/comments', [CommentController::class, 'getSubmissionComments']);
     Route::get('task-submissions/{id}/comments/count', [CommentController::class, 'getSubmissionCommentCount']);
-
 
     Route::group(['prefix' => 'users'], function () {
         Route::group(['prefix' => 'roles'], function () {
