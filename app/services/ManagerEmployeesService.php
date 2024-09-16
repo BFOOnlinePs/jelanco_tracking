@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\ManagerEmployeesModel;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 class ManagerEmployeesService
@@ -15,9 +17,7 @@ class ManagerEmployeesService
      */
     public function getEmployeesByManagerId($managerId, $withNames = false)
     {
-        // TODO: user the model to get the data
-        $employeeIds = DB::table('manager_employees')
-            ->where('me_manager_id', $managerId)
+        $employeeIds = ManagerEmployeesModel::where('me_manager_id', $managerId)
             ->pluck('me_employee_ids')
             ->first();
 
@@ -25,8 +25,7 @@ class ManagerEmployeesService
 
         // with names and images
         if ($withNames) {
-            return DB::table('users')
-                ->whereIn('id', $employeeIds)
+            return User::whereIn('id', $employeeIds)
                 ->select('id', 'name', 'image')
                 ->get()
                 ->toArray();
