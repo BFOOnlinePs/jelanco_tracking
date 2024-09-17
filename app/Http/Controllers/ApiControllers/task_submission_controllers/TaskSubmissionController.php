@@ -87,6 +87,8 @@ class TaskSubmissionController extends Controller
             'parent_id' => 'int', // -1 when no parent (the original/first submission)
             'task_id' => 'required', // -1 when submission has no parent
             'content' => 'required',
+            'start_time' => 'nullable',
+            'end_time' => 'nullable',
             'categories' => 'nullable',
             'start_latitude' => 'required',
             'start_longitude' => 'required',
@@ -112,17 +114,19 @@ class TaskSubmissionController extends Controller
 
         // submitter from auth
         $submitter = auth()->user()->id;
-        $start_time = Carbon::now();
+        // $start_time = Carbon::now();
 
         $task_submission = new TaskSubmissionsModel();
         $task_submission->ts_parent_id = (int) $request->input('parent_id');
         $task_submission->ts_task_id = (int) $request->input('task_id');
         $task_submission->ts_submitter = $submitter;
         $task_submission->ts_content = $request->input('content');
+
         $task_submission->ts_categories = $request->input('categories');
         $task_submission->ts_start_latitude = $request->input('start_latitude');
         $task_submission->ts_start_longitude = $request->input('start_longitude');
-        $task_submission->ts_actual_start_time = $start_time;
+        $task_submission->ts_actual_start_time = $request->input('start_time');
+        $task_submission->ts_actual_end_time = $request->input('end_time');
         $task_submission->ts_status = 'accepted'; // default
 
         if ($task_submission->save()) {
@@ -286,7 +290,7 @@ class TaskSubmissionController extends Controller
                     ->where('ts_parent_id', '!=', -1);
             })
             ->orderBy('created_at', 'desc')
-            ->paginate(7);
+            ->paginate(5);
 
         $this->submissionService->processSubmissions($submissions);
 
