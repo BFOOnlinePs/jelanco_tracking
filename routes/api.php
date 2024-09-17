@@ -25,6 +25,8 @@ use Illuminate\Support\Facades\Route;
 Route::post('/login', [LoginController::class, 'userLogin']);
 Route::post('register', [SignupController::class, 'signUp']);
 
+Route::get('users', [userController::class, 'getAllUsers']);
+
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('logout', [LogoutController::class, 'logout']);
@@ -37,27 +39,30 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('tasks/{id}', [TaskController::class, 'updateTask']);
     Route::get('/tasks/added-by-user', [TaskAssignmentController::class, 'getTasksAddedByUser']);
     Route::get('/tasks/assigned-to-user', [TaskAssignmentController::class, 'getTasksAssignedToUser']);
+    Route::get('/tasks/user-not-submitted-tasks', [TaskAssignmentController::class, 'getUserNotSubmittedTasks']);
 
     // tasks submissions
     Route::post('task-submissions', [TaskSubmissionController::class, 'addTaskSubmission']);
     Route::get('task-submissions/{id}', [TaskSubmissionController::class, 'getTaskSubmission']);
     Route::get('task-submissions/{id}/versions', [TaskSubmissionController::class, 'getTaskSubmissionVersions']);
+    Route::get('user-submissions', [TaskSubmissionController::class, 'getUserSubmissions']);
 
     // task categories
     Route::get('task-categories', [TaskCategoryController::class, 'getTaskCategories']);
 
     // comments
     Route::post('comments', [CommentController::class, 'addTaskSubmissionComment']);
+    Route::get('task-submissions/{id}/comments', [CommentController::class, 'getSubmissionComments']);
+    Route::get('task-submissions/{id}/comments/count', [CommentController::class, 'getSubmissionCommentCount']);
 
-    Route::get('users', [userController::class, 'getAllUsers']);
 
-    Route::group(['prefix'=>'users'],function (){
-        Route::group(['prefix'=>'roles'],function (){
+    Route::group(['prefix' => 'users'], function () {
+        Route::group(['prefix' => 'roles'], function () {
             Route::get('get_roles', [App\Http\Controllers\ApiControllers\roles_and_permissions\RolesController::class, 'get_roles']);
             Route::post('create', [App\Http\Controllers\ApiControllers\roles_and_permissions\RolesController::class, 'create']);
         });
-//        Mohamad Maraqa
-        Route::group(['prefix'=>'permissions'],function (){
+        //        Mohamad Maraqa
+        Route::group(['prefix' => 'permissions'], function () {
             Route::get('get_permission', [App\Http\Controllers\ApiControllers\roles_and_permissions\PermissionController::class, 'get_permission']);
         });
     });
