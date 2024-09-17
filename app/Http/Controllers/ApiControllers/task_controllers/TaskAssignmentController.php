@@ -6,10 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Models\TaskModel;
 use App\Models\TaskSubmissionsModel;
 use App\Models\User;
+use App\Services\SubmissionService;
 use Illuminate\Http\Request;
 
 class TaskAssignmentController extends Controller
 {
+    protected $submissionService;
+
+
+    public function __construct(SubmissionService $submissionService)
+    {
+        $this->submissionService = $submissionService;
+    }
 
     public function getTasksAddedByUser()
     {
@@ -20,9 +28,7 @@ class TaskAssignmentController extends Controller
             ->paginate(6);
 
         $tasks->transform(function ($task) {
-            $user_ids = json_decode($task->t_assigned_to);
-            $temp_users = User::whereIn('id', $user_ids)->select('id', 'name')->get();
-            $task->assigned_to_users = $temp_users;
+            $task->assigned_to_users = $this->submissionService->getAssignedUsers($task->t_assigned_to);
             return $task;
         });
 
@@ -43,7 +49,7 @@ class TaskAssignmentController extends Controller
         $userId = auth()->user()->id;
         $tasks = TaskModel::whereJsonContains('t_assigned_to', (string)$userId)
             ->with('taskCategory:c_id,c_name')
-            ->with('addedByUser:id,name')
+            ->with('addedByUser:id,name,image')
             ->orderBy('created_at', 'desc')
             ->paginate(6);
 
@@ -83,10 +89,10 @@ class TaskAssignmentController extends Controller
             })
             ->whereNull('task_submissions.ts_task_id') // Ensure there is no submission for this task by the current user
             ->where('tasks.t_status', 'active')
-            ->with('taskCategory:c_id,c_name')
-            ->with('addedByUser:id,name')
+            // ->with('taskCategory:c_id,c_name')
+            ->with('addedByUser:id,name,image')
             ->orderBy('created_at', 'desc')
-            ->select('tasks.*')
+            ->select('tasks.t_id', 'tasks.t_content', 'tasks.t_added_by', 'tasks.created_at')
             ->paginate($perPage);
 
 

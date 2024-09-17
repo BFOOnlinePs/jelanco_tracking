@@ -5,14 +5,14 @@
              style="opacity: .8">
         <span class="brand-text font-weight-light">AdminLTE 3</span>
     </a>
-    
+
     <!-- Sidebar -->
     <div class="sidebar">
         <!-- Sidebar user panel (optional) -->
         <div class="user-panel mt-3 pb-3 mb-3 d-flex">
             <div class="image">
                 <img src="{{ asset('assets/dist/img/user2-160x160.jpg') }}" class="img-circle elevation-2" alt="User Image">
-            </div>  
+            </div>
             <div class="info">
                 <a href="#" class="d-block">Alexander Pierce</a>
             </div>
@@ -29,22 +29,22 @@
                         <p>الرئيسية</p>
                     </a>
                 </li>
-                @can('عرض الادوار')
+                {{-- @can('عرض الادوار') --}}
                     <li class="nav-item">
                         <a href="{{ route('permissions.index') }}" class="nav-link">
                             <i class="nav-icon fa fa-lock"></i>
                             <p>صلاحيات المستخدمين</p>
                         </a>
                     </li>
-                @endcan
-                @can('عرض المستخدمين')
+                {{-- @endcan --}}
+                {{-- @can('عرض المستخدمين') --}}
                     <li class="nav-item">
                         <a href="{{ route('users.index') }}" class="nav-link">
                             <i class="nav-icon fa fa-users"></i>
                             <p>المستخدمين</p>
                         </a>
                     </li>
-                @endcan
+                {{-- @endcan --}}
                 <li class="nav-item">
                     <a href="{{ route('tasks_category.index') }}" class="nav-link">
                         <i class="nav-icon fa fa-list-alt"></i>

@@ -2,7 +2,7 @@
 
 return [
     // socket url
-    'socket_io_url' => 'http://192.168.1.13:3000',
+    'socket_io_url' => 'http://192.168.1.21:3000',
 
     // extensions
     'thumbnail_extension' => 'jpg',
@@ -11,6 +11,7 @@ return [
     'comments_attachments_path' => 'comments_attachments/',
     'submissions_attachments_path' => 'uploads/',
     'thumbnail_path' => 'thumbnails/',
+    'profile_images_path' => 'profile_images/',
 
 
 ];

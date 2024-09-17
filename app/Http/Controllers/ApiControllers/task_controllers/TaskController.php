@@ -38,7 +38,7 @@ class TaskController extends Controller
     {
         $task = TaskModel::where('t_id', $id)
             ->with('taskCategory:c_id,c_name')
-            ->with('addedByUser:id,name')
+            ->with('addedByUser:id,name,image')
             ->first();
 
         if ($task) {
@@ -60,7 +60,7 @@ class TaskController extends Controller
             $task->task_submissions->transform(function ($submission) {
                 // to get the submitter user
                 $user_id = $submission->ts_submitter;
-                $user = User::where('id', $user_id)->select('id', 'name')->first();
+                $user = User::where('id', $user_id)->select('id', 'name', 'image')->first();
                 $submission->submitter_user = $user;
 
                 $submission->submission_comments = $this->submissionService->getSubmissionComments($submission);

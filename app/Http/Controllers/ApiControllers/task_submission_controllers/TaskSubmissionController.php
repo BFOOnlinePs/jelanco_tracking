@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\ApiControllers\task_submission_controllers;
 
+use App\Helpers\SystemPermissions;
 use App\Http\Controllers\Controller;
 use App\Models\AttachmentsModel;
 use App\Models\TaskModel;
 use App\Models\TaskSubmissionsModel;
 use App\Models\User;
 use App\Services\FileUploadService;
+use App\Services\ManagerEmployeesService;
 use App\Services\MediaService;
 use App\Services\SubmissionService;
 use App\Services\VideoThumbnailService;
@@ -21,14 +23,16 @@ class TaskSubmissionController extends Controller
     protected $thumbnailService;
     protected $fileUploadService;
     protected $submissionService;
+    protected $managerEmployeesService;
 
     // Inject the FileUploadService, thumbnailService and MediaService into the controller
-    public function __construct(FileUploadService $fileUploadService, VideoThumbnailService $thumbnailService, MediaService $mediaService, SubmissionService $submissionService)
+    public function __construct(FileUploadService $fileUploadService, VideoThumbnailService $thumbnailService, MediaService $mediaService, SubmissionService $submissionService, ManagerEmployeesService $managerEmployeesService)
     {
         $this->fileUploadService = $fileUploadService;
         $this->thumbnailService = $thumbnailService;
         $this->mediaService = $mediaService;
         $this->submissionService = $submissionService;
+        $this->managerEmployeesService = $managerEmployeesService;
     }
 
 
@@ -83,6 +87,8 @@ class TaskSubmissionController extends Controller
             'parent_id' => 'int', // -1 when no parent (the original/first submission)
             'task_id' => 'required', // -1 when submission has no parent
             'content' => 'required',
+            'start_time' => 'nullable',
+            'end_time' => 'nullable',
             'categories' => 'nullable',
             'start_latitude' => 'required',
             'start_longitude' => 'required',
@@ -108,17 +114,19 @@ class TaskSubmissionController extends Controller
 
         // submitter from auth
         $submitter = auth()->user()->id;
-        $start_time = Carbon::now();
+        // $start_time = Carbon::now();
 
         $task_submission = new TaskSubmissionsModel();
         $task_submission->ts_parent_id = (int) $request->input('parent_id');
         $task_submission->ts_task_id = (int) $request->input('task_id');
         $task_submission->ts_submitter = $submitter;
         $task_submission->ts_content = $request->input('content');
+
         $task_submission->ts_categories = $request->input('categories');
         $task_submission->ts_start_latitude = $request->input('start_latitude');
         $task_submission->ts_start_longitude = $request->input('start_longitude');
-        $task_submission->ts_actual_start_time = $start_time;
+        $task_submission->ts_actual_start_time = $request->input('start_time');
+        $task_submission->ts_actual_end_time = $request->input('end_time');
         $task_submission->ts_status = 'accepted'; // default
 
         if ($task_submission->save()) {
@@ -140,29 +148,21 @@ class TaskSubmissionController extends Controller
                 $this->handleOldAttachments($request->old_attachments, $task_submission,);
             }
 
-            $submission_media = $this->mediaService->getMedia('task_submissions', $task_submission->ts_id);
+            // $submission_media = $this->mediaService->getMedia('task_submissions', $task_submission->ts_id);
 
-            $task_submission->submission_attachments_categories = $submission_media;
+            // $task_submission->submission_attachments_categories = $submission_media;
 
-            // $processed_submissions = $this->submissionService->processSubmissions($task_submission);
 
-            // // Check if the submission has a task
-            // if ($processed_submissions->ts_task_id != -1) {
-            //     $processed_submissions->task_details = TaskModel::where('t_id', $submission->ts_task_id)
-            //         ->with('taskCategory:c_id,c_name')
-            //         ->with('addedByUser:id,name')
-            //         ->first();
-            // } else {
-            //     $submission->task_details = null;
-            // }
 
-            // return $submission;
+            $this->submissionService->processSubmission($task_submission);
+
+            $processed_submissions = $this->submissionService->getSubmissionTask($task_submission);
 
 
             return response()->json([
                 'status' => true,
                 'message' => 'تم تسليم المهمة بنجاح',
-                'task_submission' => $task_submission
+                'task_submission' => $processed_submissions
             ], 200);
         }
     }
@@ -206,22 +206,17 @@ class TaskSubmissionController extends Controller
         ]);
     }
 
-    public function getTaskSubmission($id)
+    public function getTaskSubmissionWithTaskAndComments($id)
     {
-        // $validator = Validator::make($request->all(), [
-        //     'task_submission_id' => 'required|exists:task_submissions,ts_id',
-        // ]);
-
-        // if ($validator->fails()) {
-        //     return response()->json([
-        //         'status' => false,
-        //         'message' => $validator->errors()->first(),
-        //     ], 422);
-        // }
-
-        // if id not exist
-
         $task_submission = TaskSubmissionsModel::where('ts_id', $id)->first();
+
+        $this->submissionService->processSubmission($task_submission, true);
+
+        // Check if the submission has a task
+        $this->submissionService->getSubmissionTask($task_submission, true);
+
+        // get the comments
+        $task_submission->submission_comments = $this->submissionService->getSubmissionComments($task_submission);
 
         return response()->json([
             'status' => true,
@@ -230,46 +225,104 @@ class TaskSubmissionController extends Controller
     }
 
 
+
+    // get submissions of the current user
+    // + submissions of his employees (all submissions even if another manager add them) - if he has the permission
+    // for home screen
     public function getUserSubmissions()
     {
         $user = auth()->user();
+
+        $manager_employee_ids = [];
+
+        // if he has the permission
+        if (SystemPermissions::hasPermission(SystemPermissions::VIEW_MY_EMPLOYEES_SUBMISSIONS)) {
+            $manager_employee_ids = $this->managerEmployeesService->getEmployeesByManagerId($user->id);
+        }
+
+        // Combine the user ID with the employee IDs
+        $allSubmitters = array_merge([$user->id], $manager_employee_ids);
+
         // last version
-        $submissions = TaskSubmissionsModel::where('ts_submitter', $user->id)
+        $submissions = TaskSubmissionsModel::whereIn('ts_submitter', $allSubmitters)
             ->whereNotIn('ts_id', function ($query) {
                 $query->select('ts_parent_id')
                     ->from('task_submissions')
                     ->where('ts_parent_id', '!=', -1);
             })
             ->orderBy('created_at', 'desc')
-            ->paginate(4);
+            ->paginate(7);
 
-
-        $processed_submissions = $this->submissionService->processSubmissions($submissions);
+        $this->submissionService->processSubmissions($submissions);
 
         // Check if the submission has a task
         $submissions_with_tasks = $submissions->map(function ($submission) {
-            if ($submission->ts_task_id != -1) {
-                $submission->task_details = TaskModel::where('t_id', $submission->ts_task_id)
-                    ->with('taskCategory:c_id,c_name')
-                    ->with('addedByUser:id,name')
-                    ->first();
-            } else {
-                $submission->task_details = null;
-            }
-
-            return $submission;
+            return $this->submissionService->getSubmissionTask($submission);
         });
+
+
+        // they have the same length
+        return response()->json([
+            'status' => true,
+            'pagination' => [
+                'current_page' => $submissions->currentPage(),
+                'last_page' => $submissions->lastPage(),
+                'per_page' => $submissions->perPage(),
+                'total_items' => $submissions->total(),
+            ],
+            'submissions' => $submissions_with_tasks->values(),
+        ], 200);
+    }
+
+
+    public function getTodaysSubmissions()
+    {
+        // $perPage = $request->query('per_page', 10);
+
+        $user_id = auth()->user()->id;
+
+        // last version
+        $submissions = TaskSubmissionsModel::where('ts_submitter', $user_id)
+            ->whereDate('created_at', Carbon::today())
+            ->whereNotIn('ts_id', function ($query) {
+                $query->select('ts_parent_id')
+                    ->from('task_submissions')
+                    ->where('ts_parent_id', '!=', -1);
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(5);
+
+        $this->submissionService->processSubmissions($submissions);
+
+        // Check if the submission has a task
+        $submissions_with_tasks = $submissions->map(function ($submission) {
+            return $this->submissionService->getSubmissionTask($submission);
+        });
+
+
+        // Retrieve today's submissions by the current user,
+        // only the last version
+        // $submissions = TaskSubmissionsModel::where('ts_submitter', auth()->user()->id)
+        //     ->whereDate('created_at', Carbon::today())
+        //     ->whereNotIn('ts_id', function ($query) {
+        //         $query->select('ts_parent_id')
+        //             ->from('task_submissions')
+        //             ->where('ts_parent_id', '!=', -1);
+        //     })
+        //     ->orderBy('created_at', 'desc')
+        //     ->select('ts_id', 'ts_content' ,'created_at')
+        //     ->paginate($perPage);
 
 
         return response()->json([
             'status' => true,
             'pagination' => [
-                'current_page' => $processed_submissions->currentPage(),
-                'last_page' => $processed_submissions->lastPage(),
-                'per_page' => $processed_submissions->perPage(),
-                'total_items' => $processed_submissions->total(),
+                'current_page' => $submissions->currentPage(),
+                'last_page' => $submissions->lastPage(),
+                'per_page' => $submissions->perPage(),
+                'total_items' => $submissions->total(),
             ],
-            'submissions' => $submissions_with_tasks->values(),
-        ], 200);
+            'submissions' => $submissions_with_tasks->values()
+        ]);
     }
 }
