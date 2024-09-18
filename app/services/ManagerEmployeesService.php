@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\ManagerEmployeesModel;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 
 class ManagerEmployeesService
 {

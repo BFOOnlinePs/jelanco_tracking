@@ -23,6 +23,16 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+
+use Kreait\Firebase\Factory;
+
+Route::get('/firebase-check', function () {
+    $factory = (new Factory)->withServiceAccount(config('firebase.projects.app.credentials'));
+    $auth = $factory->createAuth();
+
+    return 'Firebase service is working!';
+});
+
 Route::post('/login', [LoginController::class, 'userLogin']);
 Route::post('register', [SignupController::class, 'signUp']);
 
