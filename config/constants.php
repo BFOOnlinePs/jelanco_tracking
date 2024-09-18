@@ -2,7 +2,8 @@
 
 return [
     // socket url
-    'socket_io_url' => 'http://192.168.1.21:3000',
+    'socket_io_url' => 'http://192.168.1.21:3000', // http://chic.ps
+
 
     // extensions
     'thumbnail_extension' => 'jpg',

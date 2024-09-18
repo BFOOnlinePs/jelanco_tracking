@@ -8,6 +8,7 @@ use App\Models\TaskModel;
 use App\Models\TaskSubmissionCommentsModel;
 use App\Models\TaskSubmissionsModel;
 use App\Models\User;
+use App\Notifications\TaskNotification;
 use App\Services\MediaService;
 use App\Services\SubmissionService;
 use Illuminate\Http\Request;
@@ -114,6 +115,15 @@ class TaskController extends Controller
         $task->t_assigned_to = $request->input('assigned_to');
 
         if ($task->save()) {
+
+
+
+            // Find the assigned user
+            $user = User::find(1);
+
+            // Send the notification
+            $user->notify(new TaskNotification($task));
+
             return response()->json([
                 'status' => true,
                 'message' => 'تم إضافة المهمة بنجاح',

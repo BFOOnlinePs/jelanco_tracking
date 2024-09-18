@@ -4,6 +4,7 @@ use App\Http\Controllers\ApiControllers\auth_controllers\LoginController;
 use App\Http\Controllers\ApiControllers\auth_controllers\LogoutController;
 use App\Http\Controllers\ApiControllers\auth_controllers\SignupController;
 use App\Http\Controllers\ApiControllers\comment_controllers\CommentController;
+use App\Http\Controllers\ApiControllers\fcm_controllers\FcmController;
 use App\Http\Controllers\ApiControllers\manager_employees_controllers\ManagerEmployeeController;
 use App\Http\Controllers\ApiControllers\task_category_controllers\TaskCategoryController;
 use App\Http\Controllers\ApiControllers\task_controllers\TaskAssignmentController;
@@ -37,6 +38,12 @@ Route::post('/login', [LoginController::class, 'userLogin']);
 Route::post('register', [SignupController::class, 'signUp']);
 
 Route::get('users', [userController::class, 'getAllUsers']);
+
+
+// FCM
+Route::post('/storeFcmUserToken', [FcmController::class, 'storeFcmUserToken']);
+Route::post('/deleteFcmUserToken', [FcmController::class, 'deleteFcmUserToken']);
+Route::post('/updateFcmUserToken', [FcmController::class, 'updateFcmUserToken']);
 
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
