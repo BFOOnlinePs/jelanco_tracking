@@ -6,6 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Services\FcmService as ServicesFcmService;
 use Illuminate\Http\Request;
 
+
+// used
+
+
 class FcmNotificationController extends Controller
 {
 
@@ -30,4 +34,7 @@ class FcmNotificationController extends Controller
 
         return response()->json(['message' => 'Notification sent successfully']);
     }
+
+
+
 }

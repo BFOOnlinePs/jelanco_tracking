@@ -9,6 +9,10 @@ use Kreait\Firebase\Messaging\Notification;
 use Kreait\Firebase\Exception\Messaging\NotFound;
 use Kreait\Firebase\Exception\Messaging\InvalidArgument;
 
+
+// used
+
+
 class FcmService
 {
     protected $messaging;
@@ -31,16 +35,13 @@ class FcmService
         try {
             // Send the message via FCM
             $this->messaging->send($message);
+
             Log::info('Message sent successfully');
         } catch (NotFound $e) {
-            // Handle the case where the token is not found
             Log::info('Token not found: ' . $e->getMessage());
-            // Optionally, you might want to log the error or remove the invalid token
         } catch (InvalidArgument $e) {
-            // Handle invalid argument errors
             Log::info('Invalid argument: ' . $e->getMessage());
         } catch (\Exception $e) {
-            // Handle other types of errors
             Log::info('Error sending message: ' . $e->getMessage());
         }
     }

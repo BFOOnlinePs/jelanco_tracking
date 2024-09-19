@@ -132,14 +132,12 @@ class TaskController extends Controller
 
             Log::info('FCM Tokens:', $tokens);
 
-
             if (!empty($tokens)) {
                 // Loop through tokens and send message
                 foreach ($tokens as $token) {
                     $this->fcmService->sendNotification('تم إسناد تكليف جديد', $task->t_content, $token);
                 }
             }
-
 
             return response()->json([
                 'status' => true,
