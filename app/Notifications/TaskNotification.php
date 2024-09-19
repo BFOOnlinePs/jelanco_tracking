@@ -48,31 +48,31 @@ class TaskNotification extends Notification
         Log::info('FCM Tokens sss');
 
 
-        // // Retrieve all FCM registration tokens for the user
-        // $tokens = FcmRegistrationTokensModel::where('frt_user_id', $notifiable->id) // Match tokens for the user
-        //     ->pluck('frt_registration_token') // Get all registration tokens
-        //     ->toArray();
+        // Retrieve all FCM registration tokens for the user
+        $tokens = FcmRegistrationTokensModel::where('frt_user_id', $notifiable->id) // Match tokens for the user
+            ->pluck('frt_registration_token') // Get all registration tokens
+            ->toArray();
 
-        // Log::info('FCM Tokens:', $tokens);
+        Log::info('FCM Tokens:', $tokens);
 
 
-        // if (!empty($tokens)) {
+        if (!empty($tokens)) {
 
-        //     $messaging = app('firebase.messaging');
+            $messaging = app('firebase.messaging');
 
-        //     // Create Firebase Cloud Message with title and body
-        //     $message = CloudMessage::new()
-        //         ->withNotification(FirebaseNotification::create(
-        //             'New Task Assigned', // Title of the notification
-        //             'You have been assigned a new task: ' . $this->task->t_content // Body of the notification
-        //         ));
+            // Create Firebase Cloud Message with title and body
+            $message = CloudMessage::new()
+                ->withNotification(FirebaseNotification::create(
+                    'New Task Assigned', // Title of the notification
+                    'You have been assigned a new task: ' . $this->task->t_content // Body of the notification
+                ));
 
-        //     // Loop through tokens and send message
-        //     foreach ($tokens as $token) {
-        //         $messageWithToken = $message->withChangedTarget('token', $token);
-        //         $messaging->send($messageWithToken);
-        //     }
-        // }
+            // Loop through tokens and send message
+            foreach ($tokens as $token) {
+                $messageWithToken = $message->withChangedTarget('token', $token);
+                $messaging->send($messageWithToken);
+            }
+        }
 
 
 
