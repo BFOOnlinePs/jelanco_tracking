@@ -16,6 +16,13 @@ class User extends Authenticatable
     protected $table = 'users';
     protected $primaryKey = 'id';
 
+
+    public function notificationTokens()
+    {
+        return $this->hasMany(FcmRegistrationTokensModel::class);
+    }
+
+
     /**
      * The attributes that are mass assignable.
      *

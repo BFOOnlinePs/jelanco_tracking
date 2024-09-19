@@ -122,7 +122,14 @@ class TaskController extends Controller
             $user = User::find(1);
 
             // Send the notification
-            $user->notify(new TaskNotification($task));
+            $a = $user->notify(new TaskNotification($task));
+
+            Log::info('FCM Tokens a:');
+            // if ($user && $user->fcm_token) { // Check if user exists and has fcm_token
+            //     // Send the Firebase notification
+            //     $user->notify(new TaskNotification($task));
+            // }
+
 
             return response()->json([
                 'status' => true,

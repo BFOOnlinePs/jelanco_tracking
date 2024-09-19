@@ -50,13 +50,15 @@ return [
              *
              */
 
-            // 'credentials' => env('FIREBASE_CREDENTIALS', env('GOOGLE_APPLICATION_CREDENTIALS')),
-            'credentials' => env('FIREBASE_CREDENTIALS'),
+            'credentials' => env('FIREBASE_CREDENTIALS', env('GOOGLE_APPLICATION_CREDENTIALS')),
+            // 'credentials' => env('FIREBASE_CREDENTIALS'),
             /*
              * ------------------------------------------------------------------------
              * Firebase Auth Component
              * ------------------------------------------------------------------------
              */
+
+            'project_id' => env('FIREBASE_PROJECT_ID'),
 
             'auth' => [
                 'tenant_id' => env('FIREBASE_AUTH_TENANT_ID'),

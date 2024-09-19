@@ -170,6 +170,7 @@ return [
         App\Providers\RouteServiceProvider::class,
         Spatie\Permission\PermissionServiceProvider::class,
         Laravel\Sanctum\SanctumServiceProvider::class,
+        Kreait\Laravel\Firebase\ServiceProvider::class, //
     ])->toArray(),
 
     /*
@@ -185,6 +186,7 @@ return [
 
     'aliases' => Facade::defaultAliases()->merge([
         // 'Example' => App\Facades\Example::class,
+        'Firebase' => Kreait\Laravel\Firebase\Facades\Firebase::class,
     ])->toArray(),
 
 ];
