@@ -135,7 +135,13 @@ class TaskController extends Controller
             if (!empty($tokens)) {
                 // Loop through tokens and send message
                 foreach ($tokens as $token) {
-                    $this->fcmService->sendNotification('تم إسناد تكليف جديد', $task->t_content, $token);
+                    $this->fcmService->sendNotification(
+                        'تم إسناد تكليف جديد',
+                        $task->t_content,
+                        $token,
+                        config('constants.notification_type.task'),
+                        $task->t_id
+                    );
                 }
             }
 

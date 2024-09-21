@@ -15,4 +15,17 @@ return [
     'profile_images_path' => 'profile_images/',
 
 
+    // notification constants
+    'notification' => [
+        'type' => 'type',
+        'type_id' => 'type_id',
+    ],
+
+
+    // notification type / screens
+    'notification_type' => [
+        'task' => 'task',
+
+    ],
+
 ];

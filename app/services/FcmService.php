@@ -23,7 +23,8 @@ class FcmService
         $this->messaging = $firebase->createMessaging();
     }
 
-    public function sendNotification($title, $body, $token)
+    // if type is 'task', then id is 'task id'
+    public function sendNotification($title, $body, $token,  $type = null, $type_id = null)
     {
         // Create a notification
         $notification = Notification::create($title, $body);
@@ -31,6 +32,23 @@ class FcmService
         // Create a message that targets a specific token
         $message = CloudMessage::withTarget('token', $token)
             ->withNotification($notification);
+
+
+        // Prepare data payload
+        $data = [];
+
+        if ($type !== null) {
+            $data[config('constants.notification.type')] = $type;
+        }
+
+        if ($type_id !== null) {
+            $data[config('constants.notification.type_id')] = $type_id;
+        }
+
+        // Attach the data payload if it exists
+        if (!empty($data)) {
+            $message = $message->withData($data);
+        }
 
         try {
             // Send the message via FCM
