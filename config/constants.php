@@ -25,6 +25,7 @@ return [
     // notification type / screens
     'notification_type' => [
         'task' => 'task',
+        'submission' => 'submission',
 
     ],
 

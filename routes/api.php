@@ -62,7 +62,6 @@ Route::get('/test-firebase', function () {
 
 Route::post('/send-notification', [NotificationController::class, 'sendNotification']);
 
-
 Route::post('/send-notification-fcm', [FcmNotificationController::class, 'notify']); //
 Route::post('send/notification', [NotificationController::class, 'notification']);
 

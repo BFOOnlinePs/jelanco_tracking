@@ -5,9 +5,9 @@ namespace App\Http\Controllers\ApiControllers\task_submission_controllers;
 use App\Helpers\SystemPermissions;
 use App\Http\Controllers\Controller;
 use App\Models\AttachmentsModel;
+use App\Models\FcmRegistrationTokensModel;
 use App\Models\TaskModel;
 use App\Models\TaskSubmissionsModel;
-use App\Models\User;
 use App\Services\FileUploadService;
 use App\Services\ManagerEmployeesService;
 use App\Services\MediaService;
@@ -15,7 +15,10 @@ use App\Services\SubmissionService;
 use App\Services\VideoThumbnailService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use App\Services\FcmService as ServicesFcmService;
+
 
 class TaskSubmissionController extends Controller
 {
@@ -24,15 +27,23 @@ class TaskSubmissionController extends Controller
     protected $fileUploadService;
     protected $submissionService;
     protected $managerEmployeesService;
+    protected $fcmService;
 
     // Inject the FileUploadService, thumbnailService and MediaService into the controller
-    public function __construct(FileUploadService $fileUploadService, VideoThumbnailService $thumbnailService, MediaService $mediaService, SubmissionService $submissionService, ManagerEmployeesService $managerEmployeesService)
-    {
+    public function __construct(
+        FileUploadService $fileUploadService,
+        VideoThumbnailService $thumbnailService,
+        MediaService $mediaService,
+        SubmissionService $submissionService,
+        ManagerEmployeesService $managerEmployeesService,
+        ServicesFcmService $fcmService
+    ) {
         $this->fileUploadService = $fileUploadService;
         $this->thumbnailService = $thumbnailService;
         $this->mediaService = $mediaService;
         $this->submissionService = $submissionService;
         $this->managerEmployeesService = $managerEmployeesService;
+        $this->fcmService = $fcmService;
     }
 
 
@@ -158,6 +169,35 @@ class TaskSubmissionController extends Controller
 
             $processed_submissions = $this->submissionService->getSubmissionTask($task_submission);
 
+
+            Log::info('submissions:');
+            Log::info('$task_submission->ts_parent_id ' . $task_submission->ts_task_id);
+
+            // $task_submission->ts_task_id != -1 (integer)
+            if ($task_submission->ts_task_id != -1) {
+                // id of manager how added the task
+                $user_id = TaskModel::where('t_id', $task_submission->ts_task_id)
+                    ->value('t_added_by');
+
+                $tokens = FcmRegistrationTokensModel::where('frt_user_id', $user_id) // Match tokens for the user
+                    ->pluck('frt_registration_token') // Get all registration tokens
+                    ->toArray();
+
+                Log::info('FCM Tokens for submissions:', $tokens);
+
+                if (!empty($tokens)) {
+                    // Loop through tokens and send message
+                    foreach ($tokens as $token) {
+                        $this->fcmService->sendNotification(
+                            'تم تسليم مهمة من قبل ' . auth()->user()->name,
+                            $task_submission->ts_content,
+                            $token,
+                            config('constants.notification_type.submission'),
+                            $task_submission->ts_id
+                        );
+                    }
+                }
+            }
 
             return response()->json([
                 'status' => true,

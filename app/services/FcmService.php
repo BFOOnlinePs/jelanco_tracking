@@ -33,7 +33,6 @@ class FcmService
         $message = CloudMessage::withTarget('token', $token)
             ->withNotification($notification);
 
-
         // Prepare data payload
         $data = [];
 

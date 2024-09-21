@@ -3,31 +3,22 @@
 namespace App\Http\Controllers\ApiControllers\task_controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\AttachmentsModel;
 use App\Models\FcmRegistrationTokensModel;
 use App\Models\TaskModel;
-use App\Models\TaskSubmissionCommentsModel;
 use App\Models\TaskSubmissionsModel;
 use App\Models\User;
-use App\Notifications\TaskNotification;
 use App\Services\MediaService;
 use App\Services\SubmissionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use SplFileInfo;
 use App\Services\FcmService as ServicesFcmService;
-use Kreait\Firebase\Messaging\CloudMessage;
-use Kreait\Firebase\Messaging\Notification as FirebaseNotification;
 
 class TaskController extends Controller
 {
     protected $mediaService;
     protected $submissionService;
     protected $fcmService;
-
-
 
     public function __construct(MediaService $mediaService, SubmissionService $submissionService, ServicesFcmService $fcmService)
     {
