@@ -4,6 +4,7 @@ namespace App\Http\Controllers\ApiControllers\comment_controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\AttachmentsModel;
+use App\Models\FcmRegistrationTokensModel;
 use App\Models\TaskSubmissionCommentsModel;
 use App\Models\TaskSubmissionsModel;
 use App\Models\User;
@@ -13,7 +14,9 @@ use App\Services\SubmissionService;
 use App\Services\VideoThumbnailService;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use App\Services\FcmService as ServicesFcmService;
 
 class CommentController extends Controller
 {
@@ -21,6 +24,7 @@ class CommentController extends Controller
     protected $thumbnailService;
     protected $fileUploadService;
     protected $submissionService;
+    protected $fcmService;
 
     // Inject the FileUploadService, thumbnailService and MediaService into the controller
     public function __construct(
@@ -28,11 +32,13 @@ class CommentController extends Controller
         VideoThumbnailService $thumbnailService,
         MediaService $mediaService,
         SubmissionService $submissionService,
+        ServicesFcmService $fcmService
     ) {
         $this->fileUploadService = $fileUploadService;
         $this->thumbnailService = $thumbnailService;
         $this->mediaService = $mediaService;
         $this->submissionService = $submissionService;
+        $this->fcmService = $fcmService;
     }
 
     private function handleAttachmentsUpload($files, $fk_id) // $fk_id = task_submission_comment_id
@@ -128,8 +134,34 @@ class CommentController extends Controller
                 // Emit the event to the Socket.IO server
                 $this->emitSocketIOEvent($comment);
             } catch (Exception $e) {
-
             };
+
+
+
+            // send notification
+
+            // id of the user how added the submission
+            $user_id = TaskSubmissionsModel::where('ts_id', $comment->tsc_task_submission_id)
+                ->value('ts_submitter');
+
+            $tokens = FcmRegistrationTokensModel::where('frt_user_id', $user_id) // Match tokens for the user
+                ->pluck('frt_registration_token') // Get all registration tokens
+                ->toArray();
+
+            Log::info('FCM Tokens for comment:', $tokens);
+
+            if (!empty($tokens)) {
+                // Loop through tokens and send message
+                foreach ($tokens as $token) {
+                    $this->fcmService->sendNotification(
+                        'تم إضافة تعليق من قبل ' . auth()->user()->name,
+                        $comment->tsc_content,
+                        $token,
+                        config('constants.notification_type.comment'),
+                        $comment->tsc_task_submission_id // id of the submission
+                    );
+                }
+            }
 
 
             return response()->json([

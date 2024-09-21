@@ -175,7 +175,7 @@ class TaskSubmissionController extends Controller
 
             // $task_submission->ts_task_id != -1 (integer)
             if ($task_submission->ts_task_id != -1) {
-                // id of manager how added the task
+                // id of the user how added the task
                 $user_id = TaskModel::where('t_id', $task_submission->ts_task_id)
                     ->value('t_added_by');
 

@@ -26,6 +26,7 @@ return [
     'notification_type' => [
         'task' => 'task',
         'submission' => 'submission',
+        'comment' => 'comment',
 
     ],
 
