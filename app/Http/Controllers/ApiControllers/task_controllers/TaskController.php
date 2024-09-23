@@ -3,28 +3,28 @@
 namespace App\Http\Controllers\ApiControllers\task_controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\AttachmentsModel;
+use App\Models\FcmRegistrationTokensModel;
 use App\Models\TaskModel;
-use App\Models\TaskSubmissionCommentsModel;
 use App\Models\TaskSubmissionsModel;
 use App\Models\User;
 use App\Services\MediaService;
 use App\Services\SubmissionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use SplFileInfo;
+use App\Services\FcmService as ServicesFcmService;
 
 class TaskController extends Controller
 {
     protected $mediaService;
     protected $submissionService;
+    protected $fcmService;
 
-    public function __construct(MediaService $mediaService, SubmissionService $submissionService)
+    public function __construct(MediaService $mediaService, SubmissionService $submissionService, ServicesFcmService $fcmService)
     {
         $this->mediaService = $mediaService;
         $this->submissionService = $submissionService;
+        $this->fcmService = $fcmService;
     }
 
     public function getAllTasks()
@@ -114,6 +114,28 @@ class TaskController extends Controller
         $task->t_assigned_to = $request->input('assigned_to');
 
         if ($task->save()) {
+
+            $users_id = json_decode($task->t_assigned_to);
+
+            $tokens = FcmRegistrationTokensModel::whereIn('frt_user_id', $users_id) // Match tokens for the user
+                ->pluck('frt_registration_token') // Get all registration tokens
+                ->toArray();
+
+            Log::info('FCM Tokens:', $tokens);
+
+            if (!empty($tokens)) {
+                // Loop through tokens and send message
+                foreach ($tokens as $token) {
+                    $this->fcmService->sendNotification(
+                        'تم إسناد تكليف جديد',
+                        $task->t_content,
+                        $token,
+                        config('constants.notification_type.task'),
+                        $task->t_id
+                    );
+                }
+            }
+
             return response()->json([
                 'status' => true,
                 'message' => 'تم إضافة المهمة بنجاح',
