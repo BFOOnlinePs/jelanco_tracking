@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use App\Services\FcmService as ServicesFcmService;
 
+
 class TaskController extends Controller
 {
     protected $mediaService;
@@ -139,7 +140,7 @@ class TaskController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'تم إضافة المهمة بنجاح',
-                // 'task' => $task,
+                'task' => $task,
             ]);
         } else {
             return response()->json([
