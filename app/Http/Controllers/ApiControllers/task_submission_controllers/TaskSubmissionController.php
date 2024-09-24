@@ -177,6 +177,7 @@ class TaskSubmissionController extends Controller
             if ($task_submission->ts_task_id != -1) {
                 // id of the user how added the task
                 $user_id = TaskModel::where('t_id', $task_submission->ts_task_id)
+                    // ->whereNot('t_added_by', auth()->user()->id) // don't send the notification to the submitter (he can't submit his own task)
                     ->value('t_added_by');
 
                 $tokens = FcmRegistrationTokensModel::where('frt_user_id', $user_id) // Match tokens for the user

@@ -115,7 +115,6 @@ class TaskController extends Controller
         $task->t_assigned_to = $request->input('assigned_to');
 
         if ($task->save()) {
-
             $users_id = json_decode($task->t_assigned_to);
 
             $tokens = FcmRegistrationTokensModel::whereIn('frt_user_id', $users_id) // Match tokens for the user
