@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\ApiControllers\task_controllers;
 
+use App\Helpers\SystemPermissions;
 use App\Http\Controllers\Controller;
 use App\Models\FcmRegistrationTokensModel;
 use App\Models\TaskModel;
@@ -64,7 +65,11 @@ class TaskController extends Controller
                 $user = User::where('id', $user_id)->select('id', 'name', 'image')->first();
                 $submission->submitter_user = $user;
 
-                $submission->submission_comments = $this->submissionService->getSubmissionComments($submission);
+                // if the user has the permission
+                if (SystemPermissions::hasPermission(SystemPermissions::VIEW_COMMENTS)) {
+                    $submission->submission_comments = $this->submissionService->getSubmissionComments($submission);
+                }
+
 
                 $submission_media = $this->mediaService->getMedia('task_submissions', $submission->ts_id);
 

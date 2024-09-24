@@ -30,6 +30,8 @@ class SystemPermissions
     const EDIT_SUBMISSION = 'تعديل تسليم';
     const VIEW_COMMENTS = 'عرض التعليقات';
     const VIEW_MY_EMPLOYEES_SUBMISSIONS = 'عرض تسليمات موظفيني'; // all submissions of my employees (even tasks assigned by another manager)
+    const VIEW_MANAGER_EMPLOYEES = 'عرض مستخدمين المدير';
+    const VIEW_ASSIGNED_TASKS = 'عرض المهام الموكلة الي';
 
 
     /**

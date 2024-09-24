@@ -256,8 +256,11 @@ class TaskSubmissionController extends Controller
         // Check if the submission has a task
         $this->submissionService->getSubmissionTask($task_submission, true);
 
-        // get the comments
-        $task_submission->submission_comments = $this->submissionService->getSubmissionComments($task_submission);
+        // get the comments if he has the permission
+        if (SystemPermissions::hasPermission(SystemPermissions::VIEW_COMMENTS)) {
+            $task_submission->submission_comments = $this->submissionService->getSubmissionComments($task_submission);
+        }
+
 
         return response()->json([
             'status' => true,
