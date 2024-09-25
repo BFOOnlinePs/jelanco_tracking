@@ -46,6 +46,10 @@ class FcmService
             $data[config('constants.notification.type_id')] = $type_id;
         }
 
+        // // Add the click_action for terminated state handling in Flutter
+        // $data['click_action'] = 'FLUTTER_NOTIFICATION_CLICK';  // This triggers the Flutter action
+
+
         // Attach the data payload if it exists
         if (!empty($data)) {
             $message = $message->withData($data);

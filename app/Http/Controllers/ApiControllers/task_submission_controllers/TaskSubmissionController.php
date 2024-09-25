@@ -8,6 +8,7 @@ use App\Models\AttachmentsModel;
 use App\Models\FcmRegistrationTokensModel;
 use App\Models\TaskModel;
 use App\Models\TaskSubmissionsModel;
+use App\Models\User;
 use App\Services\FileUploadService;
 use App\Services\ManagerEmployeesService;
 use App\Services\MediaService;
@@ -234,9 +235,15 @@ class TaskSubmissionController extends Controller
         $submissions_versions = collect($submissions_versions);
 
         $submissions_versions->transform(function ($submission) {
+            // Get the submitter user
+            $user = User::where('id', $submission->ts_submitter)
+                ->select('id', 'name', 'image')
+                ->first();
+
             $submission_media = $this->mediaService->getMedia('task_submissions', $submission->ts_id);
 
             $submission->submission_attachments_categories = $submission_media;
+            $submission->submitter_user = $user;
 
             return $submission;
         });
