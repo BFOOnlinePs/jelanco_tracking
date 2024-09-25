@@ -34,7 +34,6 @@ class ManagerEmployeeController extends Controller
 
     public function getManagerEmployeesWithTaskAssignees(Request $request)
     {
-
         $validator = Validator::make($request->all(), [
             'task_id' => 'required|exists:tasks,t_id',
         ], [
@@ -48,7 +47,6 @@ class ManagerEmployeeController extends Controller
                 'message' => $validator->errors()->first(),
             ]);
         }
-
 
         $manager_id = auth()->user()->id;
 

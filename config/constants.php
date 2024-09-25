@@ -9,6 +9,7 @@ return [
     'thumbnail_extension' => 'jpg',
 
     // storage paths
+    'tasks_attachments_path' => 'tasks_attachments/',
     'comments_attachments_path' => 'comments_attachments/',
     'submissions_attachments_path' => 'uploads/',
     'thumbnail_path' => 'thumbnails/',
