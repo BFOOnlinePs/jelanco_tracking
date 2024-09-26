@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\FCMRegistrationTokens;
+use GPBMetadata\Google\Api\Auth;
 use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Messaging\CloudMessage;
@@ -44,6 +46,10 @@ class FcmService
             $data[config('constants.notification.type_id')] = $type_id;
         }
 
+        // // Add the click_action for terminated state handling in Flutter
+        // $data['click_action'] = 'FLUTTER_NOTIFICATION_CLICK';  // This triggers the Flutter action
+
+
         // Attach the data payload if it exists
         if (!empty($data)) {
             $message = $message->withData($data);
@@ -56,6 +62,13 @@ class FcmService
             Log::info('Message sent successfully');
         } catch (NotFound $e) {
             Log::info('Token not found: ' . $e->getMessage());
+            $fcmUserToken = FCMRegistrationTokens::where('frt_user_id', auth()->user()->id)
+                ->where('frt_registration_token', $token)->get();
+
+            // if by accident saved the same token more than one time
+            foreach ($fcmUserToken as $token) {
+                $token->delete();
+            }
         } catch (InvalidArgument $e) {
             Log::info('Invalid argument: ' . $e->getMessage());
         } catch (\Exception $e) {

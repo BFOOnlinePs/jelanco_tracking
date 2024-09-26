@@ -28,6 +28,9 @@ class TaskAssignmentController extends Controller
             ->paginate(6);
 
         $tasks->transform(function ($task) {
+            // added by user
+            $user = User::where('id', $task->t_added_by)->select('id', 'name', 'image')->first();
+            $task->added_by_user = $user;
             $task->assigned_to_users = $this->submissionService->getAssignedUsers($task->t_assigned_to);
             return $task;
         });

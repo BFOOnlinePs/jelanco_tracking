@@ -1,14 +1,14 @@
 <?php
 
 return [
-    // socket url
-    'socket_io_url' => 'http://192.168.1.21:3000', // http://chic.ps
-
+    // socket url used for real time comments
+    'socket_io_url' => env('SOCKET_IO_URL'),
 
     // extensions
     'thumbnail_extension' => 'jpg',
 
     // storage paths
+    'tasks_attachments_path' => 'tasks_attachments/',
     'comments_attachments_path' => 'comments_attachments/',
     'submissions_attachments_path' => 'uploads/',
     'thumbnail_path' => 'thumbnails/',

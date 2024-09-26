@@ -12,7 +12,12 @@ class VideoThumbnailService
 
     public function __construct()
     {
-        $this->ffmpeg = FFMpeg::create();
+        $this->ffmpeg = FFMpeg::create([
+            'ffmpeg.binaries'  =>  env('FFMPEG_BINARIES'),    // مسار ffmpeg
+            'ffprobe.binaries' => env('FFPROBE_BINARIES'),   // مسار ffprobe
+            'timeout'          => 3600,                       // المدة القصوى للتنفيذ
+            'ffmpeg.threads'   => 12,                         // عدد الخيوط المستخدمة
+        ]);
     }
 
     /**
@@ -28,5 +33,4 @@ class VideoThumbnailService
         $video = $this->ffmpeg->open($videoPath);
         $video->frame(TimeCode::fromSeconds($timeInSeconds))->save($thumbnailPath);
     }
-
 }

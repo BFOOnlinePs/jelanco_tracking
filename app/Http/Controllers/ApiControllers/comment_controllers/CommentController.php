@@ -137,11 +137,11 @@ class CommentController extends Controller
             };
 
 
-
             // send notification
 
             // id of the user how added the submission
             $user_id = TaskSubmissionsModel::where('ts_id', $comment->tsc_task_submission_id)
+                ->whereNot('ts_submitter', $current_user->id) // don't send the notification to the submitter
                 ->value('ts_submitter');
 
             $tokens = FcmRegistrationTokensModel::where('frt_user_id', $user_id) // Match tokens for the user

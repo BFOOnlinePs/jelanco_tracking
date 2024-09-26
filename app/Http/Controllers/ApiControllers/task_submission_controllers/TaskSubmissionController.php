@@ -8,6 +8,7 @@ use App\Models\AttachmentsModel;
 use App\Models\FcmRegistrationTokensModel;
 use App\Models\TaskModel;
 use App\Models\TaskSubmissionsModel;
+use App\Models\User;
 use App\Services\FileUploadService;
 use App\Services\ManagerEmployeesService;
 use App\Services\MediaService;
@@ -177,6 +178,7 @@ class TaskSubmissionController extends Controller
             if ($task_submission->ts_task_id != -1) {
                 // id of the user how added the task
                 $user_id = TaskModel::where('t_id', $task_submission->ts_task_id)
+                    // ->whereNot('t_added_by', auth()->user()->id) // don't send the notification to the submitter (he can't submit his own task)
                     ->value('t_added_by');
 
                 $tokens = FcmRegistrationTokensModel::where('frt_user_id', $user_id) // Match tokens for the user
@@ -233,9 +235,15 @@ class TaskSubmissionController extends Controller
         $submissions_versions = collect($submissions_versions);
 
         $submissions_versions->transform(function ($submission) {
+            // Get the submitter user
+            $user = User::where('id', $submission->ts_submitter)
+                ->select('id', 'name', 'image')
+                ->first();
+
             $submission_media = $this->mediaService->getMedia('task_submissions', $submission->ts_id);
 
             $submission->submission_attachments_categories = $submission_media;
+            $submission->submitter_user = $user;
 
             return $submission;
         });
@@ -255,8 +263,11 @@ class TaskSubmissionController extends Controller
         // Check if the submission has a task
         $this->submissionService->getSubmissionTask($task_submission, true);
 
-        // get the comments
-        $task_submission->submission_comments = $this->submissionService->getSubmissionComments($task_submission);
+        // get the comments if he has the permission
+        if (SystemPermissions::hasPermission(SystemPermissions::VIEW_COMMENTS)) {
+            $task_submission->submission_comments = $this->submissionService->getSubmissionComments($task_submission);
+        }
+
 
         return response()->json([
             'status' => true,

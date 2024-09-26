@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\ApiControllers\task_controllers;
 
+use App\Helpers\SystemPermissions;
 use App\Http\Controllers\Controller;
+use App\Models\AttachmentsModel;
 use App\Models\FcmRegistrationTokensModel;
 use App\Models\TaskModel;
 use App\Models\TaskSubmissionsModel;
@@ -13,19 +15,78 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use App\Services\FcmService as ServicesFcmService;
+use App\Services\FileUploadService;
+use App\Services\VideoThumbnailService;
+use PSpell\Config;
 
 class TaskController extends Controller
 {
     protected $mediaService;
+    protected $thumbnailService;
     protected $submissionService;
     protected $fcmService;
+    protected $fileUploadService;
 
-    public function __construct(MediaService $mediaService, SubmissionService $submissionService, ServicesFcmService $fcmService)
-    {
+    public function __construct(
+        FileUploadService $fileUploadService,
+        VideoThumbnailService $thumbnailService,
+        MediaService $mediaService,
+        SubmissionService $submissionService,
+        ServicesFcmService $fcmService
+    ) {
         $this->mediaService = $mediaService;
+        $this->thumbnailService = $thumbnailService;
         $this->submissionService = $submissionService;
         $this->fcmService = $fcmService;
+        $this->fileUploadService = $fileUploadService;
     }
+
+    private function handleAttachmentsUpload($files, $task)
+    {
+        foreach ($files as $file) {
+            $attachment = new AttachmentsModel();
+            $folderPath = config('constants.tasks_attachments_path');
+            $file_name = $this->fileUploadService->uploadFile($file, $folderPath);
+
+            // Check if file is a video based on extension, then add thumbnail
+            $allowedVideoExtensions = config('filetypes.video_types');
+            $extension = $file->getClientOriginalExtension();
+            if (in_array($extension, $allowedVideoExtensions)) {
+                $fileNameWithoutExtension = pathinfo($file_name, PATHINFO_FILENAME);
+                $thumbnail_file_name = $fileNameWithoutExtension . '.' . config('constants.thumbnail_extension');
+                $this->thumbnailService->generateThumbnail(
+                    storage_path('app/public/' . $folderPath . '/' . $file_name),
+                    storage_path('app/public/thumbnails/' . $thumbnail_file_name),
+                );
+            }
+
+            $attachment->a_table = 'tasks';
+            $attachment->a_fk_id = $task->t_id;
+            $attachment->a_attachment = $file_name;
+            $attachment->a_user_id = auth()->user()->id;
+
+            $attachment->save();
+        }
+    }
+
+
+    // for edit
+    private function handleOldAttachments($files_names, $task)
+    {
+        foreach ($files_names as $file_name) {
+            $attachment = new AttachmentsModel();
+            // $folderPath = 'uploads';
+            // $file_name = $this->fileUploadService->uploadFile($file, $folderPath);
+
+            $attachment->a_table = 'tasks';
+            $attachment->a_fk_id = $task->t_id;
+            $attachment->a_attachment = $file_name;
+            $attachment->a_user_id = auth()->user()->id;
+
+            $attachment->save();
+        }
+    }
+
 
     public function getAllTasks()
     {
@@ -34,6 +95,7 @@ class TaskController extends Controller
         return $tasks;
     }
 
+    // task details screen
     public function getTaskWithSubmissionsAndComments($id)
     {
         $task = TaskModel::where('t_id', $id)
@@ -56,6 +118,8 @@ class TaskController extends Controller
 
             $task->assigned_to_users = User::whereIn('id', json_decode($task->t_assigned_to))->select('id', 'name')->get();
 
+            $task->task_attachments_categories = $this->mediaService->getMedia('tasks', $task->t_id);
+
 
             $task->task_submissions->transform(function ($submission) {
                 // to get the submitter user
@@ -63,7 +127,11 @@ class TaskController extends Controller
                 $user = User::where('id', $user_id)->select('id', 'name', 'image')->first();
                 $submission->submitter_user = $user;
 
-                $submission->submission_comments = $this->submissionService->getSubmissionComments($submission);
+                // if the user has the permission
+                if (SystemPermissions::hasPermission(SystemPermissions::VIEW_COMMENTS)) {
+                    $submission->submission_comments = $this->submissionService->getSubmissionComments($submission);
+                }
+
 
                 $submission_media = $this->mediaService->getMedia('task_submissions', $submission->ts_id);
 
@@ -94,6 +162,14 @@ class TaskController extends Controller
             'start_time' => 'nullable',
             'end_time' => 'nullable',
             'category_id' => 'nullable|exists:task_categories,c_id',
+            'images.*' => 'image|mimes:jpg,png,jpeg,gif,svg',
+            'videos.*' => 'mimetypes:video/mp4',
+            'documents.*' => 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx',
+        ], [
+            'images.*.image' => 'يجب اني يكون الملف نوعه صورة',
+            'images.*.mimes' => 'يجب ان يكون نوع الصور: jpg, jpeg, png, gif, svg.',
+            'videos.*.mimetypes' => 'يجب أن يكون نوع الفيديو: mp4',
+            'documents.*.mimes' => 'يجب أن يكون نوع الملفات أحد الأنواع التالية: pdf, doc, docx, xls, xlsx, ppt, pptx.',
         ]);
 
         if ($validator->fails()) {
@@ -114,6 +190,21 @@ class TaskController extends Controller
         $task->t_assigned_to = $request->input('assigned_to');
 
         if ($task->save()) {
+            // add the media
+
+            if ($request->hasFile('images')) {
+                $this->handleAttachmentsUpload($request->images, $task,);
+            }
+
+            if ($request->hasFile('videos')) {
+                $this->handleAttachmentsUpload($request->videos, $task,);
+            }
+
+            if ($request->hasFile('documents')) {
+                $this->handleAttachmentsUpload($request->documents, $task,);
+            }
+
+
 
             $users_id = json_decode($task->t_assigned_to);
 
@@ -139,7 +230,7 @@ class TaskController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'تم إضافة المهمة بنجاح',
-                // 'task' => $task,
+                'task' => $task,
             ]);
         } else {
             return response()->json([
@@ -158,7 +249,18 @@ class TaskController extends Controller
             'end_time' => 'nullable',
             'category_id' => 'nullable|exists:task_categories,c_id',
             'assigned_to' => 'required',
-            'status' => 'required|in:active,notActive'
+            'status' => 'required|in:active,notActive',
+            'images.*' => 'image|mimes:jpg,png,jpeg,gif,svg',
+            'videos.*' => 'mimetypes:video/mp4',
+            'documents.*' => 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx',
+            'old_attachments' => 'nullable', // when edit, this contains the old attachments remaining
+            'old_attachments.*' => 'string',
+        ], [
+            'images.*.image' => 'يجب اني يكون الملف نوعه صورة',
+            'images.*.mimes' => 'يجب ان يكون نوع الصور: jpg, jpeg, png, gif, svg.',
+            'videos.*.mimetypes' => 'يجب أن يكون نوع الفيديو: mp4',
+            'documents.*.mimes' => 'يجب أن يكون نوع الملفات أحد الأنواع التالية: pdf, doc, docx, xls, xlsx, ppt, pptx.',
+
         ]);
 
         if ($validator->fails()) {
@@ -188,6 +290,25 @@ class TaskController extends Controller
                 't_category_id' => $request->input('category_id'),
                 't_assigned_to' => $request->input('assigned_to'),
             ]);
+
+            // add the media ...
+
+            if ($request->hasFile('images')) {
+                $this->handleAttachmentsUpload($request->images, $task,);
+            }
+
+            if ($request->hasFile('videos')) {
+                $this->handleAttachmentsUpload($request->videos, $task,);
+            }
+
+            if ($request->hasFile('documents')) {
+                $this->handleAttachmentsUpload($request->documents, $task,);
+            }
+
+            if ($request->has('old_attachments')) {
+                $this->handleOldAttachments($request->old_attachments, $task,);
+            }
+
 
             return response()->json([
                 'status' => true,

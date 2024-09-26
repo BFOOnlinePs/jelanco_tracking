@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Helpers\SystemPermissions;
 use App\Models\TaskCategoriesModel;
 use App\Models\TaskModel;
 use App\Models\User;
@@ -54,9 +55,9 @@ class SubmissionService
 
         $submission->submitter_user = $user;
 
-
-        $submission->comments_count = $this->getCommentCountTillParent($submission->ts_id);
-
+        if (SystemPermissions::hasPermission(SystemPermissions::VIEW_COMMENTS)) {
+            $submission->comments_count = $this->getCommentCountTillParent($submission->ts_id);
+        }
         // submission categories
         if ($includeCategories) {
             $submission->submission_categories = $this->getSubmissionCategories($submission->ts_categories);
