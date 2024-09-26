@@ -95,6 +95,7 @@ class TaskController extends Controller
         return $tasks;
     }
 
+    // task details screen
     public function getTaskWithSubmissionsAndComments($id)
     {
         $task = TaskModel::where('t_id', $id)
@@ -116,6 +117,8 @@ class TaskController extends Controller
                 ->get();
 
             $task->assigned_to_users = User::whereIn('id', json_decode($task->t_assigned_to))->select('id', 'name')->get();
+
+            $task->task_attachments_categories = $this->mediaService->getMedia('tasks', $task->t_id);
 
 
             $task->task_submissions->transform(function ($submission) {
