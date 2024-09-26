@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Services\FcmService as ServicesFcmService;
 use App\Services\FileUploadService;
 use App\Services\VideoThumbnailService;
+use Illuminate\Support\Facades\Storage;
 use PSpell\Config;
 
 class TaskController extends Controller
@@ -70,20 +71,20 @@ class TaskController extends Controller
     }
 
 
-    // for edit
+    // for edit, delete the media of the task, except the old attachments
     private function handleOldAttachments($files_names, $task)
     {
-        foreach ($files_names as $file_name) {
-            $attachment = new AttachmentsModel();
-            // $folderPath = 'uploads';
-            // $file_name = $this->fileUploadService->uploadFile($file, $folderPath);
+        $task_attachments = AttachmentsModel::where('a_fk_id', $task->t_id)->where('a_table', 'tasks')->get();
+        $task_attachments_names = $task_attachments->pluck('a_attachment')->toArray();
+        $remaining_attachments = array_diff($task_attachments_names, $files_names);
 
-            $attachment->a_table = 'tasks';
-            $attachment->a_fk_id = $task->t_id;
-            $attachment->a_attachment = $file_name;
-            $attachment->a_user_id = auth()->user()->id;
-
-            $attachment->save();
+        $folder_path = config('constants.tasks_attachments_path');
+        foreach ($remaining_attachments as $attachment) {
+            if (Storage::exists('public/' . $folder_path . '/' . basename($attachment))) {
+                Storage::delete('public/' . $folder_path . '/' . basename($attachment));
+            }
+            $task_attachment = AttachmentsModel::where('a_attachment', $attachment)->where('a_table', 'tasks')->first();
+            $task_attachment->delete();
         }
     }
 
@@ -166,7 +167,7 @@ class TaskController extends Controller
             'videos.*' => 'mimetypes:video/mp4',
             'documents.*' => 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx',
         ], [
-            'images.*.image' => 'يجب اني يكون الملف نوعه صورة',
+            'images.*.image' => 'يجب ان يكون الملف نوعه صورة',
             'images.*.mimes' => 'يجب ان يكون نوع الصور: jpg, jpeg, png, gif, svg.',
             'videos.*.mimetypes' => 'يجب أن يكون نوع الفيديو: mp4',
             'documents.*.mimes' => 'يجب أن يكون نوع الملفات أحد الأنواع التالية: pdf, doc, docx, xls, xlsx, ppt, pptx.',
@@ -203,8 +204,6 @@ class TaskController extends Controller
             if ($request->hasFile('documents')) {
                 $this->handleAttachmentsUpload($request->documents, $task,);
             }
-
-
 
             $users_id = json_decode($task->t_assigned_to);
 
@@ -253,14 +252,13 @@ class TaskController extends Controller
             'images.*' => 'image|mimes:jpg,png,jpeg,gif,svg',
             'videos.*' => 'mimetypes:video/mp4',
             'documents.*' => 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx',
-            'old_attachments' => 'nullable', // when edit, this contains the old attachments remaining
+            'old_attachments' => 'nullable', //  this contains the old attachments remaining
             'old_attachments.*' => 'string',
         ], [
-            'images.*.image' => 'يجب اني يكون الملف نوعه صورة',
+            'images.*.image' => 'يجب ان يكون الملف نوعه صورة',
             'images.*.mimes' => 'يجب ان يكون نوع الصور: jpg, jpeg, png, gif, svg.',
             'videos.*.mimetypes' => 'يجب أن يكون نوع الفيديو: mp4',
             'documents.*.mimes' => 'يجب أن يكون نوع الملفات أحد الأنواع التالية: pdf, doc, docx, xls, xlsx, ppt, pptx.',
-
         ]);
 
         if ($validator->fails()) {
@@ -292,6 +290,7 @@ class TaskController extends Controller
             ]);
 
             // add the media ...
+            // delete media except the old attachments
 
             if ($request->hasFile('images')) {
                 $this->handleAttachmentsUpload($request->images, $task,);
@@ -305,10 +304,10 @@ class TaskController extends Controller
                 $this->handleAttachmentsUpload($request->documents, $task,);
             }
 
+            // delete the media of the task, except the old attachments
             if ($request->has('old_attachments')) {
                 $this->handleOldAttachments($request->old_attachments, $task,);
             }
-
 
             return response()->json([
                 'status' => true,

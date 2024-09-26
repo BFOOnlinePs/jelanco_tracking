@@ -6,17 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Models\TaskModel;
 use App\Models\TaskSubmissionsModel;
 use App\Models\User;
+use App\Services\MediaService;
 use App\Services\SubmissionService;
 use Illuminate\Http\Request;
 
 class TaskAssignmentController extends Controller
 {
     protected $submissionService;
+    protected $mediaService;
 
 
-    public function __construct(SubmissionService $submissionService)
+    public function __construct(SubmissionService $submissionService, MediaService $mediaService)
     {
         $this->submissionService = $submissionService;
+        $this->mediaService = $mediaService;
     }
 
     public function getTasksAddedByUser()
@@ -32,6 +35,8 @@ class TaskAssignmentController extends Controller
             $user = User::where('id', $task->t_added_by)->select('id', 'name', 'image')->first();
             $task->added_by_user = $user;
             $task->assigned_to_users = $this->submissionService->getAssignedUsers($task->t_assigned_to);
+            $task->task_attachments_categories =  $this->mediaService->getMedia('tasks', $task->t_id);
+
             return $task;
         });
 
@@ -55,6 +60,11 @@ class TaskAssignmentController extends Controller
             ->with('addedByUser:id,name,image')
             ->orderBy('created_at', 'desc')
             ->paginate(6);
+
+        $tasks->transform(function ($task) {
+            $task->task_attachments_categories =  $this->mediaService->getMedia('tasks', $task->t_id);
+            return $task;
+        });
 
         return response()->json([
             'status' => true,
