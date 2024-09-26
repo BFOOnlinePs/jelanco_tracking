@@ -1,9 +1,8 @@
 <?php
 
 return [
-    // socket url
-    'socket_io_url' => 'http://192.168.1.21:3000', // http://chic.ps
-
+    // socket url used for real time comments
+    'socket_io_url' => env('SOCKET_IO_URL'),
 
     // extensions
     'thumbnail_extension' => 'jpg',
