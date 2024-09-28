@@ -44,13 +44,19 @@ class TaskController extends Controller
 
     private function handleAttachmentsUpload($files, $task)
     {
+        Log::info('ASEEL files:', $files);
         foreach ($files as $file) {
-            $attachment = new AttachmentsModel();
+            // Log::info('ASEEL file:', $file);
+            Log::info('ASEEL inside loop');
             $folderPath = config('constants.tasks_attachments_path');
+            Log::info('ASEEL folderPath:' . $folderPath);
+
             $file_name = $this->fileUploadService->uploadFile($file, $folderPath);
+            Log::info('ASEEL file_name:' . $file_name);
 
             // Check if file is a video based on extension, then add thumbnail
             $allowedVideoExtensions = config('filetypes.video_types');
+            Log::info('ASEEL allowedVideoExtensions:', $allowedVideoExtensions);
             $extension = $file->getClientOriginalExtension();
             if (in_array($extension, $allowedVideoExtensions)) {
                 $fileNameWithoutExtension = pathinfo($file_name, PATHINFO_FILENAME);
@@ -60,13 +66,20 @@ class TaskController extends Controller
                     storage_path('app/public/thumbnails/' . $thumbnail_file_name),
                 );
             }
+            $attachment = new AttachmentsModel();
 
             $attachment->a_table = 'tasks';
             $attachment->a_fk_id = $task->t_id;
             $attachment->a_attachment = $file_name;
             $attachment->a_user_id = auth()->user()->id;
 
-            $attachment->save();
+            // Log::info("");
+            if ($attachment->save()) {
+                Log::info('ASEEL attachment saved');
+                Log::info('ASEEL attachment: ' . $attachment->a_id);
+            } else {
+                Log::info('ASEEL attachment not saved');
+            }
         }
     }
 
@@ -291,8 +304,16 @@ class TaskController extends Controller
 
             // add the media ...
             // delete media except the old attachments
+            // delete the media of the task, except the old attachments
+
+            if ($request->has('old_attachments')) {
+                $this->handleOldAttachments($request->old_attachments, $task,);
+            }
+
+            Log::info('Aseel update task:');
 
             if ($request->hasFile('images')) {
+                Log::info('Aseel Images:', $request->images);
                 $this->handleAttachmentsUpload($request->images, $task,);
             }
 
@@ -304,10 +325,9 @@ class TaskController extends Controller
                 $this->handleAttachmentsUpload($request->documents, $task,);
             }
 
-            // delete the media of the task, except the old attachments
-            if ($request->has('old_attachments')) {
-                $this->handleOldAttachments($request->old_attachments, $task,);
-            }
+
+
+            Log::info('End Aseel update task:');
 
             return response()->json([
                 'status' => true,
