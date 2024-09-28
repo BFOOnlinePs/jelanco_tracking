@@ -254,6 +254,19 @@ class TaskSubmissionController extends Controller
         ]);
     }
 
+
+    public function getTaskSubmission($id)
+    {
+        $task_submission = TaskSubmissionsModel::where('ts_id', $id)->first();
+
+        $this->submissionService->processSubmission($task_submission, true);
+
+        return response()->json([
+            'status' => true,
+            'task_submission' => $task_submission
+        ], 200);
+    }
+
     public function getTaskSubmissionWithTaskAndComments($id)
     {
         $task_submission = TaskSubmissionsModel::where('ts_id', $id)->first();

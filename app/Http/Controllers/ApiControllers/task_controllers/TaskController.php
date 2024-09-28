@@ -109,6 +109,30 @@ class TaskController extends Controller
         return $tasks;
     }
 
+    public function getTaskById($id)
+    {
+        $task = TaskModel::where('t_id', $id)
+            ->with('taskCategory:c_id,c_name')
+            // ->with('addedByUser:id,name,image')
+            ->first();
+
+        if ($task) {
+            $task->assigned_to_users = User::whereIn('id', json_decode($task->t_assigned_to))->select('id', 'name', 'image')->get();
+
+            $task->task_attachments_categories = $this->mediaService->getMedia('tasks', $task->t_id);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'The Task is not exists',
+            ]);
+        }
+
+        return response()->json([
+            'status' => true,
+            'task' => $task,
+        ]);
+    }
+
     // task details screen
     public function getTaskWithSubmissionsAndComments($id)
     {
@@ -161,7 +185,6 @@ class TaskController extends Controller
         }
 
         return response()->json([
-            // paginate
             'status' => true,
             'task' => $task,
         ]);
