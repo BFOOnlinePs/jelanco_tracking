@@ -10,9 +10,16 @@ class NotificationController extends Controller
 {
     public function getUserNotifications(Request $request)
     {
-        $notifications = NotificationModel::where('user_id', Auth()->user()->id)
-            ->orderBy('created_at', 'desc')
-            ->paginate(8);
+        $isRead = $request->query('is_read'); // Can be true, false, or null (no filter)
+
+        $query  = NotificationModel::where('user_id', Auth()->user()->id)
+            ->orderBy('created_at', 'desc');
+
+        // Apply the 'is_read' filter if provided
+        if (!is_null($isRead)) {
+            $query->where('is_read', filter_var($isRead, FILTER_VALIDATE_BOOLEAN));
+        }
+        $notifications = $query->paginate(8);
 
         return response()->json([
             'status' => true,
@@ -51,6 +58,7 @@ class NotificationController extends Controller
             'status' => true,
         ], 200);
     }
+
 
     public function readAll()
     {
