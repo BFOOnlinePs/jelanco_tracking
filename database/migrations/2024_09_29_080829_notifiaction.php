@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');  // Reference to the user receiving the notification
             $table->string('title');
             $table->text('body');
+            $table->boolean('is_read')->default(false);
             $table->string('type')->nullable();  // Type of the notification (e.g., task)
             $table->unsignedBigInteger('type_id')->nullable();  // Associated entity ID (e.g., task ID)
             $table->timestamps();
