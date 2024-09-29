@@ -243,23 +243,15 @@ class TaskController extends Controller
 
             $users_id = json_decode($task->t_assigned_to);
 
-            $tokens = FcmRegistrationTokensModel::whereIn('frt_user_id', $users_id) // Match tokens for the user
-                ->pluck('frt_registration_token') // Get all registration tokens
-                ->toArray();
+            if (!empty($users_id)) {
 
-            Log::info('FCM Tokens:', $tokens);
-
-            if (!empty($tokens)) {
-                // Loop through tokens and send message
-                foreach ($tokens as $token) {
-                    $this->fcmService->sendNotification(
-                        'تم إسناد تكليف جديد',
-                        $task->t_content,
-                        $token,
-                        config('constants.notification_type.task'),
-                        $task->t_id
-                    );
-                }
+                $this->fcmService->sendNotification(
+                    'تم إسناد تكليف جديد من قبل ' . auth()->user()->name,
+                    $task->t_content,
+                    $users_id,
+                    config('constants.notification_type.task'),
+                    $task->t_id
+                );
             }
 
             return response()->json([

@@ -174,30 +174,21 @@ class TaskSubmissionController extends Controller
             Log::info('submissions:');
             Log::info('$task_submission->ts_parent_id ' . $task_submission->ts_task_id);
 
-            // $task_submission->ts_task_id != -1 (integer)
             if ($task_submission->ts_task_id != -1) {
                 // id of the user how added the task
-                $user_id = TaskModel::where('t_id', $task_submission->ts_task_id)
+                $users_id = TaskModel::where('t_id', $task_submission->ts_task_id)
                     // ->whereNot('t_added_by', auth()->user()->id) // don't send the notification to the submitter (he can't submit his own task)
-                    ->value('t_added_by');
-
-                $tokens = FcmRegistrationTokensModel::where('frt_user_id', $user_id) // Match tokens for the user
-                    ->pluck('frt_registration_token') // Get all registration tokens
+                    ->pluck('t_added_by')
                     ->toArray();
 
-                Log::info('FCM Tokens for submissions:', $tokens);
-
-                if (!empty($tokens)) {
-                    // Loop through tokens and send message
-                    foreach ($tokens as $token) {
-                        $this->fcmService->sendNotification(
-                            'تم تسليم مهمة من قبل ' . auth()->user()->name,
-                            $task_submission->ts_content,
-                            $token,
-                            config('constants.notification_type.submission'),
-                            $task_submission->ts_id
-                        );
-                    }
+                if (!empty($users_id)) {
+                    $this->fcmService->sendNotification(
+                        'تم تسليم مهمة من قبل ' . auth()->user()->name,
+                        $task_submission->ts_content,
+                        $users_id,
+                        config('constants.notification_type.submission'),
+                        $task_submission->ts_id
+                    );
                 }
             }
 

@@ -140,27 +140,19 @@ class CommentController extends Controller
             // send notification
 
             // id of the user how added the submission
-            $user_id = TaskSubmissionsModel::where('ts_id', $comment->tsc_task_submission_id)
+            $users_id = TaskSubmissionsModel::where('ts_id', $comment->tsc_task_submission_id)
                 ->whereNot('ts_submitter', $current_user->id) // don't send the notification to the submitter
-                ->value('ts_submitter');
+                ->pluck('ts_submitter')
+                ->toArray(); // Convert the collection to a plain array;
 
-            $tokens = FcmRegistrationTokensModel::where('frt_user_id', $user_id) // Match tokens for the user
-                ->pluck('frt_registration_token') // Get all registration tokens
-                ->toArray();
-
-            Log::info('FCM Tokens for comment:', $tokens);
-
-            if (!empty($tokens)) {
-                // Loop through tokens and send message
-                foreach ($tokens as $token) {
+            if (!empty($users_id)) {
                     $this->fcmService->sendNotification(
                         'تم إضافة تعليق من قبل ' . auth()->user()->name,
                         $comment->tsc_content,
-                        $token,
+                        $users_id, // id of a single user, saved as array
                         config('constants.notification_type.comment'),
                         $comment->tsc_task_submission_id // id of the submission
                     );
-                }
             }
 
 
