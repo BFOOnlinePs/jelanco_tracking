@@ -15,7 +15,6 @@ use Kreait\Firebase\Exception\Messaging\InvalidArgument;
 
 // used
 
-
 class FcmService
 {
     protected $messaging;

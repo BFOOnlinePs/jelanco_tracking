@@ -119,6 +119,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('task-submissions/{id}/comments', [CommentController::class, 'getSubmissionComments']);
     Route::get('task-submissions/{id}/comments/count', [CommentController::class, 'getSubmissionCommentCount']);
 
+    // notifications
+    Route::get('notifications', [NotificationController::class, 'getUserNotifications']);
+    Route::get('notifications/unread-count', [NotificationController::class, 'unreadNotificationsCount']);
+    Route::get('notifications/read/{notification_id}', [NotificationController::class, 'readNotification']);
+    Route::get('notifications/read-all', [NotificationController::class, 'readAll']);
+
     Route::group(['prefix' => 'users'], function () {
         Route::group(['prefix' => 'roles'], function () {
             Route::get('get_roles', [App\Http\Controllers\ApiControllers\roles_and_permissions\RolesController::class, 'get_roles']);
