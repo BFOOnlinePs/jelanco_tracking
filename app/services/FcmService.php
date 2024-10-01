@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\FCMRegistrationTokens;
 use App\Models\NotificationModel;
+use Exception;
 use GPBMetadata\Google\Api\Auth;
 use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Factory;
@@ -85,6 +86,13 @@ class FcmService
             $message = $message->withData($data);
         }
 
+        // try {
+        //     // Emit the event to the Socket.IO server
+        //     $this->emitSocketIOEvent();
+        // } catch (Exception $e) {
+        //     Log::info('Aseel Error emitting event: ' . $e->getMessage());
+        // };
+
         try {
             // Send the message via FCM
             $this->messaging->send($message);
@@ -106,4 +114,18 @@ class FcmService
             Log::info('Error sending message: ' . $e->getMessage());
         }
     }
+
+
+    // protected function emitSocketIOEvent()
+    // {
+    //     $client = new \GuzzleHttp\Client();
+    //     $url = config('constants.socket_io_url');
+    //     Log::info('Socket.IO URL: ' . $url);
+    //     $client->post($url, [
+    //         'json' => [
+    //             'event' => 'new-notification',
+    //             // 'dataaaa' => $notification',
+    //         ]
+    //     ]);
+    // }
 }

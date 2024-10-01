@@ -6,6 +6,7 @@ use App\Helpers\SystemPermissions;
 use App\Http\Controllers\Controller;
 use App\Models\AttachmentsModel;
 use App\Models\FcmRegistrationTokensModel;
+use App\Models\TaskCategoriesModel;
 use App\Models\TaskModel;
 use App\Models\TaskSubmissionsModel;
 use App\Models\User;
@@ -241,6 +242,13 @@ class TaskController extends Controller
                 $this->handleAttachmentsUpload($request->documents, $task,);
             }
 
+            $task->added_by_user = User::where('id', $task->t_added_by)->select('id', 'name', 'image')->first();
+            $task->assigned_to_users = $this->submissionService->getAssignedUsers($task->t_assigned_to);
+            $task->task_attachments_categories =  $this->mediaService->getMedia('tasks', $task->t_id);
+            $task->task_category = TaskCategoriesModel::where('c_id', $task->t_category_id)
+                ->select('c_id', 'c_name')
+                ->first();
+
             $users_id = json_decode($task->t_assigned_to);
 
             if (!empty($users_id)) {
@@ -340,14 +348,19 @@ class TaskController extends Controller
                 $this->handleAttachmentsUpload($request->documents, $task,);
             }
 
-
+            $task->added_by_user = User::where('id', $task->t_added_by)->select('id', 'name', 'image')->first();
+            $task->assigned_to_users = $this->submissionService->getAssignedUsers($task->t_assigned_to);
+            $task->task_attachments_categories =  $this->mediaService->getMedia('tasks', $task->t_id);
+            $task->task_category = TaskCategoriesModel::where('c_id', $task->t_category_id)
+                ->select('c_id', 'c_name')
+                ->first();
 
             Log::info('End Aseel update task:');
 
             return response()->json([
                 'status' => true,
                 'message' => 'تم تعديل المهمة بنجاح',
-                // 'task' => $task,
+                'task' => $task,
             ]);
         } else {
             return response()->json([

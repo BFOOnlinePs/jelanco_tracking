@@ -11,6 +11,7 @@ class NotificationController extends Controller
     public function getUserNotifications(Request $request)
     {
         $isRead = $request->query('is_read'); // Can be true, false, or null (no filter)
+        $perPage = $request->query('per_page' ?? 10);
 
         $query  = NotificationModel::where('user_id', Auth()->user()->id)
             ->orderBy('created_at', 'desc');
@@ -19,7 +20,8 @@ class NotificationController extends Controller
         if (!is_null($isRead)) {
             $query->where('is_read', filter_var($isRead, FILTER_VALIDATE_BOOLEAN));
         }
-        $notifications = $query->paginate(8);
+
+        $notifications = $query->paginate($perPage);
 
         return response()->json([
             'status' => true,
@@ -51,7 +53,7 @@ class NotificationController extends Controller
     {
         NotificationModel::where('id', $notification_id)
             ->update([
-                'is_read' => 1
+                'is_read' => 1 // 1 means true
             ]);
 
         return response()->json([

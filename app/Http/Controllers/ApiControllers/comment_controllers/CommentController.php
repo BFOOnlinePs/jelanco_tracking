@@ -146,15 +146,14 @@ class CommentController extends Controller
                 ->toArray(); // Convert the collection to a plain array;
 
             if (!empty($users_id)) {
-                    $this->fcmService->sendNotification(
-                        'تم إضافة تعليق من قبل ' . auth()->user()->name,
-                        $comment->tsc_content,
-                        $users_id, // id of a single user, saved as array
-                        config('constants.notification_type.comment'),
-                        $comment->tsc_task_submission_id // id of the submission
-                    );
+                $this->fcmService->sendNotification(
+                    'تم إضافة تعليق من قبل ' . auth()->user()->name,
+                    $comment->tsc_content,
+                    $users_id, // id of a single user, saved as array
+                    config('constants.notification_type.comment'),
+                    $comment->tsc_task_submission_id // id of the submission
+                );
             }
-
 
             return response()->json([
                 'status' => true,
@@ -176,6 +175,7 @@ class CommentController extends Controller
             ]
         ]);
     }
+
     public function getSubmissionComments($id)
     {
         $submission = TaskSubmissionsModel::where('ts_id', $id)->first();
