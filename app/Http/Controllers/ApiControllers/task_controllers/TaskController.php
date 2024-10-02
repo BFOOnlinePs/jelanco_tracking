@@ -252,7 +252,7 @@ class TaskController extends Controller
             if (!empty($users_id)) {
 
                 $this->fcmService->sendNotification(
-                    'تكليفك جاهز! تمت الإضافة أو التعديل  من قبل ' . auth()->user()->name,
+                    'تكليفك جاهز! تمت الإضافة أو التعديل من قبل ' . auth()->user()->name,
                     // $truncatedContent,
                      $task->t_content,
                     $users_id,
@@ -359,7 +359,7 @@ class TaskController extends Controller
 
             if (!empty($users_id)) {
                 $this->fcmService->sendNotification(
-                    'تكليفك جاهز! تمت الإضافة أو التعديل  من قبل ' . auth()->user()->name,
+                    'تكليفك جاهز! تمت الإضافة أو التعديل من قبل ' . auth()->user()->name,
                     $task->t_content,
                     $users_id,
                     config('constants.notification_type.task'),
