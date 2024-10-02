@@ -4,8 +4,6 @@ namespace App\Services;
 
 use App\Models\FCMRegistrationTokens;
 use App\Models\NotificationModel;
-use Exception;
-use GPBMetadata\Google\Api\Auth;
 use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Messaging\CloudMessage;
@@ -34,13 +32,17 @@ class FcmService
             ->get()
             ->groupBy('frt_user_id');
 
+
+        // Use the truncate_string function to limit the length of the task content
+        $truncatedBody = truncate_string($body, 100);
+
         // Iterate through each user
         foreach ($userIds as $userId) {
             // Save the notification once for each user
             NotificationModel::create([
                 'user_id' => $userId,  // Associate the notification with the correct user
                 'title' => $title,
-                'body' => $body,
+                'body' => $truncatedBody,
                 'type' => $type,
                 'type_id' => $type_id,
             ]);
