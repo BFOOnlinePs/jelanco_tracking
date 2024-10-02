@@ -181,9 +181,11 @@ class TaskSubmissionController extends Controller
                     ->pluck('t_added_by')
                     ->toArray();
 
+                $notification_title = $task_submission->ts_parent_id == -1 ? 'تم تسليم تكليف من قبل ' : 'تم تعديل تكليف من قبل ';
+
                 if (!empty($users_id)) {
                     $this->fcmService->sendNotification(
-                        'تم تسليم مهمة من قبل ' . auth()->user()->name,
+                        $notification_title . auth()->user()->name,
                         $task_submission->ts_content,
                         $users_id,
                         config('constants.notification_type.submission'),
@@ -194,7 +196,7 @@ class TaskSubmissionController extends Controller
 
             return response()->json([
                 'status' => true,
-                'message' => 'تم تسليم المهمة بنجاح',
+                'message' => 'تم تسليم التكليف بنجاح',
                 'task_submission' => $processed_submissions
             ], 200);
         }

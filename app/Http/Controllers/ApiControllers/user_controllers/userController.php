@@ -7,6 +7,7 @@ use App\Models\TaskSubmissionsModel;
 use App\Models\User;
 use App\Services\FileUploadService;
 use App\Services\SubmissionService;
+use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -16,16 +17,21 @@ class userController extends Controller
 {
     protected $submissionService;
     protected $fileUploadService;
+    protected $userService;
 
-    public function __construct(SubmissionService $submissionService, FileUploadService $fileUploadService)
+    public function __construct(SubmissionService $submissionService, FileUploadService $fileUploadService, UserService $userService)
     {
         $this->submissionService = $submissionService;
         $this->fileUploadService = $fileUploadService;
+        $this->userService = $userService;
     }
 
     public function getUserProfileById($user_id)
     {
         $user_info = User::find($user_id);
+        // user departments from service
+        $user_departments = $this->userService->getUserDepartments($user_id);
+        $user_info->user_departments = $user_departments;
 
         // last version
         $submissions = TaskSubmissionsModel::where('ts_submitter', $user_id)
@@ -105,9 +111,15 @@ class userController extends Controller
         ]);
     }
 
-    public function getUserById($id) {
+    public function getUserById($id)
+    {
         $user = User::find($id);
-        $permissions = $user->getAllPermissions();
+        // Get the user's departments using the UserService
+        $departments = $this->userService->getUserDepartments($id);
+
+        // Attach the departments to the user object
+        $user->user_departments = $departments;
+        $permissions = User::find($id)->getAllPermissions();
 
         return response()->json([
             'status' => true,

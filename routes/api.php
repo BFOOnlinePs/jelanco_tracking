@@ -104,8 +104,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('users/employees', [ManagerEmployeeController::class, 'getManagerEmployees']);
     Route::post('users/employees/with-task-assignees', [ManagerEmployeeController::class, 'getManagerEmployeesWithTaskAssignees']);
 
-
-
     // user profile
     Route::get('users/profile/{user_id}', [userController::class, 'getUserProfileById']);
     Route::post('users/profile/image', [userController::class, 'updateProfileImage']);

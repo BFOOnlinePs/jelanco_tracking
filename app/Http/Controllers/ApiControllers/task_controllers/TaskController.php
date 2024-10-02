@@ -252,9 +252,8 @@ class TaskController extends Controller
             $users_id = json_decode($task->t_assigned_to);
 
             if (!empty($users_id)) {
-
                 $this->fcmService->sendNotification(
-                    'تم إسناد تكليف جديد من قبل ' . auth()->user()->name,
+                    'تكليفك جاهز! تمت الإضافة أو التعديل  من قبل ' . auth()->user()->name,
                     $task->t_content,
                     $users_id,
                     config('constants.notification_type.task'),
@@ -264,13 +263,13 @@ class TaskController extends Controller
 
             return response()->json([
                 'status' => true,
-                'message' => 'تم إضافة المهمة بنجاح',
+                'message' => 'تم إضافة التكليف بنجاح',
                 'task' => $task,
             ]);
         } else {
             return response()->json([
                 'status' => false,
-                'message' => 'حدث خلل أثناء إضافة المهمة، حاول لاحقاً',
+                'message' => 'حدث خلل أثناء إضافة التكليف. حاول لاحقاً',
             ]);
         }
     }
@@ -355,11 +354,22 @@ class TaskController extends Controller
                 ->select('c_id', 'c_name')
                 ->first();
 
-            Log::info('End Aseel update task:');
+
+            $users_id = json_decode($task->t_assigned_to);
+
+            if (!empty($users_id)) {
+                $this->fcmService->sendNotification(
+                    'تكليفك جاهز! تمت الإضافة أو التعديل  من قبل ' . auth()->user()->name,
+                    $task->t_content,
+                    $users_id,
+                    config('constants.notification_type.task'),
+                    $task->t_id
+                );
+            }
 
             return response()->json([
                 'status' => true,
-                'message' => 'تم تعديل المهمة بنجاح',
+                'message' => 'تم تعديل التكليف بنجاح',
                 'task' => $task,
             ]);
         } else {
