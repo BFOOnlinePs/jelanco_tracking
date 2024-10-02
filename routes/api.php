@@ -84,18 +84,18 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     // tasks
     Route::get('tasks', [TaskController::class, 'getAllTasks']);
-    // Route::get('tasks/{id}', [TaskController::class, 'getTask']);
     Route::get('tasks/{id}/submissions-and-comments', [TaskController::class, 'getTaskWithSubmissionsAndComments']);
     Route::post('tasks', [TaskController::class, 'addTask']);
     Route::post('tasks/{id}', [TaskController::class, 'updateTask']);
     Route::get('/tasks/added-by-user', [TaskAssignmentController::class, 'getTasksAddedByUser']);
     Route::get('/tasks/assigned-to-user', [TaskAssignmentController::class, 'getTasksAssignedToUser']);
     Route::get('/tasks/user-not-submitted-tasks', [TaskAssignmentController::class, 'getUserNotSubmittedTasks']);
+    Route::get('tasks/{id}', [TaskController::class, 'getTaskById']);
 
     // tasks submissions
     Route::post('task-submissions', [TaskSubmissionController::class, 'addTaskSubmission']);
     Route::get('task-submissions/today', [TaskSubmissionController::class, 'getTodaysSubmissions']);
-    Route::get('task-submissions/{id}', [TaskSubmissionController::class, 'getTaskSubmissionWithTaskAndComments']);
+    Route::get('task-submissions/{id}', [TaskSubmissionController::class, 'getTaskSubmission']);
     Route::get('task-submissions/{id}/versions', [TaskSubmissionController::class, 'getTaskSubmissionVersions']);
     Route::get('user-submissions', [TaskSubmissionController::class, 'getUserSubmissions']);
     Route::get('task-submissions/{id}/task-and-comments', [TaskSubmissionController::class, 'getTaskSubmissionWithTaskAndComments']);
@@ -103,8 +103,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // manager and employees
     Route::get('users/employees', [ManagerEmployeeController::class, 'getManagerEmployees']);
     Route::post('users/employees/with-task-assignees', [ManagerEmployeeController::class, 'getManagerEmployeesWithTaskAssignees']);
-
-
 
     // user profile
     Route::get('users/profile/{user_id}', [userController::class, 'getUserProfileById']);
@@ -118,6 +116,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('comments', [CommentController::class, 'addTaskSubmissionComment']);
     Route::get('task-submissions/{id}/comments', [CommentController::class, 'getSubmissionComments']);
     Route::get('task-submissions/{id}/comments/count', [CommentController::class, 'getSubmissionCommentCount']);
+
+    // notifications
+    Route::get('notifications', [NotificationController::class, 'getUserNotifications']);
+    Route::get('notifications/unread-count', [NotificationController::class, 'unreadNotificationsCount']);
+    Route::get('notifications/read/{notification_id}', [NotificationController::class, 'readNotification']);
+    Route::get('notifications/read-all', [NotificationController::class, 'readAll']);
 
     Route::group(['prefix' => 'users'], function () {
         Route::group(['prefix' => 'roles'], function () {

@@ -7,7 +7,7 @@ use App\Services\FcmService as ServicesFcmService;
 use Illuminate\Http\Request;
 
 
-// used
+// not used
 
 
 class FcmNotificationController extends Controller
@@ -30,7 +30,9 @@ class FcmNotificationController extends Controller
 
         // $fcmService = new FcmService();
         // $fcmService->sendNotification($title, $body, $token);
-        $this->fcmService->sendNotification($title, $body, $token);
+
+        //
+        // $this->fcmService->sendNotification($title, $body, $token);
 
         return response()->json(['message' => 'Notification sent successfully']);
     }

@@ -174,36 +174,29 @@ class TaskSubmissionController extends Controller
             Log::info('submissions:');
             Log::info('$task_submission->ts_parent_id ' . $task_submission->ts_task_id);
 
-            // $task_submission->ts_task_id != -1 (integer)
             if ($task_submission->ts_task_id != -1) {
                 // id of the user how added the task
-                $user_id = TaskModel::where('t_id', $task_submission->ts_task_id)
+                $users_id = TaskModel::where('t_id', $task_submission->ts_task_id)
                     // ->whereNot('t_added_by', auth()->user()->id) // don't send the notification to the submitter (he can't submit his own task)
-                    ->value('t_added_by');
-
-                $tokens = FcmRegistrationTokensModel::where('frt_user_id', $user_id) // Match tokens for the user
-                    ->pluck('frt_registration_token') // Get all registration tokens
+                    ->pluck('t_added_by')
                     ->toArray();
 
-                Log::info('FCM Tokens for submissions:', $tokens);
+                $notification_title = $task_submission->ts_parent_id == -1 ? 'تم تسليم تكليف من قبل ' : 'تم تعديل تكليف من قبل ';
 
-                if (!empty($tokens)) {
-                    // Loop through tokens and send message
-                    foreach ($tokens as $token) {
-                        $this->fcmService->sendNotification(
-                            'تم تسليم مهمة من قبل ' . auth()->user()->name,
-                            $task_submission->ts_content,
-                            $token,
-                            config('constants.notification_type.submission'),
-                            $task_submission->ts_id
-                        );
-                    }
+                if (!empty($users_id)) {
+                    $this->fcmService->sendNotification(
+                        $notification_title . auth()->user()->name,
+                        $task_submission->ts_content,
+                        $users_id,
+                        config('constants.notification_type.submission'),
+                        $task_submission->ts_id
+                    );
                 }
             }
 
             return response()->json([
                 'status' => true,
-                'message' => 'تم تسليم المهمة بنجاح',
+                'message' => 'تم تسليم التكليف بنجاح',
                 'task_submission' => $processed_submissions
             ], 200);
         }
@@ -252,6 +245,19 @@ class TaskSubmissionController extends Controller
             'status' => true,
             'submissions_versions' => $submissions_versions
         ]);
+    }
+
+
+    public function getTaskSubmission($id)
+    {
+        $task_submission = TaskSubmissionsModel::where('ts_id', $id)->first();
+
+        $this->submissionService->processSubmission($task_submission, true);
+
+        return response()->json([
+            'status' => true,
+            'task_submission' => $task_submission
+        ], 200);
     }
 
     public function getTaskSubmissionWithTaskAndComments($id)

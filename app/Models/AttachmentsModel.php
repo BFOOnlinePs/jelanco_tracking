@@ -11,4 +11,11 @@ class AttachmentsModel extends Model
 
     protected $table = 'attachments';
     protected $primaryKey = 'a_id';
+
+    protected $fillable = [
+        'a_table',
+        'a_fk_id',
+        'a_attachment',
+        'a_user_id',
+    ];
 }

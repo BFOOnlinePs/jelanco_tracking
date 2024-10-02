@@ -11,7 +11,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable , HasRoles;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
     protected $table = 'users';
     protected $primaryKey = 'id';
@@ -20,6 +20,11 @@ class User extends Authenticatable
     public function notificationTokens()
     {
         return $this->hasMany(FcmRegistrationTokensModel::class);
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(NotificationModel::class);
     }
 
 

@@ -6,6 +6,7 @@ use App\Helpers\SystemPermissions;
 use App\Http\Controllers\Controller;
 use App\Models\AttachmentsModel;
 use App\Models\FcmRegistrationTokensModel;
+use App\Models\TaskCategoriesModel;
 use App\Models\TaskModel;
 use App\Models\TaskSubmissionsModel;
 use App\Models\User;
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Services\FcmService as ServicesFcmService;
 use App\Services\FileUploadService;
 use App\Services\VideoThumbnailService;
+use Illuminate\Support\Facades\Storage;
 use PSpell\Config;
 
 class TaskController extends Controller
@@ -43,13 +45,19 @@ class TaskController extends Controller
 
     private function handleAttachmentsUpload($files, $task)
     {
+        Log::info('ASEEL files:', $files);
         foreach ($files as $file) {
-            $attachment = new AttachmentsModel();
+            // Log::info('ASEEL file:', $file);
+            Log::info('ASEEL inside loop');
             $folderPath = config('constants.tasks_attachments_path');
+            Log::info('ASEEL folderPath:' . $folderPath);
+
             $file_name = $this->fileUploadService->uploadFile($file, $folderPath);
+            Log::info('ASEEL file_name:' . $file_name);
 
             // Check if file is a video based on extension, then add thumbnail
             $allowedVideoExtensions = config('filetypes.video_types');
+            Log::info('ASEEL allowedVideoExtensions:', $allowedVideoExtensions);
             $extension = $file->getClientOriginalExtension();
             if (in_array($extension, $allowedVideoExtensions)) {
                 $fileNameWithoutExtension = pathinfo($file_name, PATHINFO_FILENAME);
@@ -59,31 +67,38 @@ class TaskController extends Controller
                     storage_path('app/public/thumbnails/' . $thumbnail_file_name),
                 );
             }
+            $attachment = new AttachmentsModel();
 
             $attachment->a_table = 'tasks';
             $attachment->a_fk_id = $task->t_id;
             $attachment->a_attachment = $file_name;
             $attachment->a_user_id = auth()->user()->id;
 
-            $attachment->save();
+            // Log::info("");
+            if ($attachment->save()) {
+                Log::info('ASEEL attachment saved');
+                Log::info('ASEEL attachment: ' . $attachment->a_id);
+            } else {
+                Log::info('ASEEL attachment not saved');
+            }
         }
     }
 
 
-    // for edit
+    // for edit, delete the media of the task, except the old attachments
     private function handleOldAttachments($files_names, $task)
     {
-        foreach ($files_names as $file_name) {
-            $attachment = new AttachmentsModel();
-            // $folderPath = 'uploads';
-            // $file_name = $this->fileUploadService->uploadFile($file, $folderPath);
+        $task_attachments = AttachmentsModel::where('a_fk_id', $task->t_id)->where('a_table', 'tasks')->get();
+        $task_attachments_names = $task_attachments->pluck('a_attachment')->toArray();
+        $remaining_attachments = array_diff($task_attachments_names, $files_names);
 
-            $attachment->a_table = 'tasks';
-            $attachment->a_fk_id = $task->t_id;
-            $attachment->a_attachment = $file_name;
-            $attachment->a_user_id = auth()->user()->id;
-
-            $attachment->save();
+        $folder_path = config('constants.tasks_attachments_path');
+        foreach ($remaining_attachments as $attachment) {
+            if (Storage::exists('public/' . $folder_path . '/' . basename($attachment))) {
+                Storage::delete('public/' . $folder_path . '/' . basename($attachment));
+            }
+            $task_attachment = AttachmentsModel::where('a_attachment', $attachment)->where('a_table', 'tasks')->first();
+            $task_attachment->delete();
         }
     }
 
@@ -93,6 +108,30 @@ class TaskController extends Controller
         $tasks = TaskModel::get();
 
         return $tasks;
+    }
+
+    public function getTaskById($id)
+    {
+        $task = TaskModel::where('t_id', $id)
+            ->with('taskCategory:c_id,c_name')
+            // ->with('addedByUser:id,name,image')
+            ->first();
+
+        if ($task) {
+            $task->assigned_to_users = User::whereIn('id', json_decode($task->t_assigned_to))->select('id', 'name', 'image')->get();
+
+            $task->task_attachments_categories = $this->mediaService->getMedia('tasks', $task->t_id);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'The Task is not exists',
+            ]);
+        }
+
+        return response()->json([
+            'status' => true,
+            'task' => $task,
+        ]);
     }
 
     // task details screen
@@ -147,7 +186,6 @@ class TaskController extends Controller
         }
 
         return response()->json([
-            // paginate
             'status' => true,
             'task' => $task,
         ]);
@@ -166,7 +204,7 @@ class TaskController extends Controller
             'videos.*' => 'mimetypes:video/mp4',
             'documents.*' => 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx',
         ], [
-            'images.*.image' => 'يجب اني يكون الملف نوعه صورة',
+            'images.*.image' => 'يجب ان يكون الملف نوعه صورة',
             'images.*.mimes' => 'يجب ان يكون نوع الصور: jpg, jpeg, png, gif, svg.',
             'videos.*.mimetypes' => 'يجب أن يكون نوع الفيديو: mp4',
             'documents.*.mimes' => 'يجب أن يكون نوع الملفات أحد الأنواع التالية: pdf, doc, docx, xls, xlsx, ppt, pptx.',
@@ -204,38 +242,34 @@ class TaskController extends Controller
                 $this->handleAttachmentsUpload($request->documents, $task,);
             }
 
-
+            $task->added_by_user = User::where('id', $task->t_added_by)->select('id', 'name', 'image')->first();
+            $task->assigned_to_users = $this->submissionService->getAssignedUsers($task->t_assigned_to);
+            $task->task_attachments_categories =  $this->mediaService->getMedia('tasks', $task->t_id);
+            $task->task_category = TaskCategoriesModel::where('c_id', $task->t_category_id)
+                ->select('c_id', 'c_name')
+                ->first();
 
             $users_id = json_decode($task->t_assigned_to);
 
-            $tokens = FcmRegistrationTokensModel::whereIn('frt_user_id', $users_id) // Match tokens for the user
-                ->pluck('frt_registration_token') // Get all registration tokens
-                ->toArray();
-
-            Log::info('FCM Tokens:', $tokens);
-
-            if (!empty($tokens)) {
-                // Loop through tokens and send message
-                foreach ($tokens as $token) {
-                    $this->fcmService->sendNotification(
-                        'تم إسناد تكليف جديد',
-                        $task->t_content,
-                        $token,
-                        config('constants.notification_type.task'),
-                        $task->t_id
-                    );
-                }
+            if (!empty($users_id)) {
+                $this->fcmService->sendNotification(
+                    'تكليفك جاهز! تمت الإضافة أو التعديل  من قبل ' . auth()->user()->name,
+                    $task->t_content,
+                    $users_id,
+                    config('constants.notification_type.task'),
+                    $task->t_id
+                );
             }
 
             return response()->json([
                 'status' => true,
-                'message' => 'تم إضافة المهمة بنجاح',
+                'message' => 'تم إضافة التكليف بنجاح',
                 'task' => $task,
             ]);
         } else {
             return response()->json([
                 'status' => false,
-                'message' => 'حدث خلل أثناء إضافة المهمة، حاول لاحقاً',
+                'message' => 'حدث خلل أثناء إضافة التكليف. حاول لاحقاً',
             ]);
         }
     }
@@ -253,14 +287,13 @@ class TaskController extends Controller
             'images.*' => 'image|mimes:jpg,png,jpeg,gif,svg',
             'videos.*' => 'mimetypes:video/mp4',
             'documents.*' => 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx',
-            'old_attachments' => 'nullable', // when edit, this contains the old attachments remaining
+            'old_attachments' => 'nullable', //  this contains the old attachments remaining
             'old_attachments.*' => 'string',
         ], [
-            'images.*.image' => 'يجب اني يكون الملف نوعه صورة',
+            'images.*.image' => 'يجب ان يكون الملف نوعه صورة',
             'images.*.mimes' => 'يجب ان يكون نوع الصور: jpg, jpeg, png, gif, svg.',
             'videos.*.mimetypes' => 'يجب أن يكون نوع الفيديو: mp4',
             'documents.*.mimes' => 'يجب أن يكون نوع الملفات أحد الأنواع التالية: pdf, doc, docx, xls, xlsx, ppt, pptx.',
-
         ]);
 
         if ($validator->fails()) {
@@ -292,8 +325,17 @@ class TaskController extends Controller
             ]);
 
             // add the media ...
+            // delete media except the old attachments
+            // delete the media of the task, except the old attachments
+
+            if ($request->has('old_attachments')) {
+                $this->handleOldAttachments($request->old_attachments, $task,);
+            }
+
+            Log::info('Aseel update task:');
 
             if ($request->hasFile('images')) {
+                Log::info('Aseel Images:', $request->images);
                 $this->handleAttachmentsUpload($request->images, $task,);
             }
 
@@ -305,15 +347,30 @@ class TaskController extends Controller
                 $this->handleAttachmentsUpload($request->documents, $task,);
             }
 
-            if ($request->has('old_attachments')) {
-                $this->handleOldAttachments($request->old_attachments, $task,);
-            }
+            $task->added_by_user = User::where('id', $task->t_added_by)->select('id', 'name', 'image')->first();
+            $task->assigned_to_users = $this->submissionService->getAssignedUsers($task->t_assigned_to);
+            $task->task_attachments_categories =  $this->mediaService->getMedia('tasks', $task->t_id);
+            $task->task_category = TaskCategoriesModel::where('c_id', $task->t_category_id)
+                ->select('c_id', 'c_name')
+                ->first();
 
+
+            $users_id = json_decode($task->t_assigned_to);
+
+            if (!empty($users_id)) {
+                $this->fcmService->sendNotification(
+                    'تكليفك جاهز! تمت الإضافة أو التعديل  من قبل ' . auth()->user()->name,
+                    $task->t_content,
+                    $users_id,
+                    config('constants.notification_type.task'),
+                    $task->t_id
+                );
+            }
 
             return response()->json([
                 'status' => true,
-                'message' => 'تم تعديل المهمة بنجاح',
-                // 'task' => $task,
+                'message' => 'تم تعديل التكليف بنجاح',
+                'task' => $task,
             ]);
         } else {
             return response()->json([

@@ -35,6 +35,10 @@ class TaskModel extends Model
 
     public function submissions()
     {
-        return $this->hasMany(TaskSubmissionsModel::class , 'ts_task_id' , 't_id');
+        return $this->hasMany(TaskSubmissionsModel::class, 'ts_task_id', 't_id');
     }
+
+    protected $casts = [
+        't_category_id' => 'integer',
+    ];
 }
