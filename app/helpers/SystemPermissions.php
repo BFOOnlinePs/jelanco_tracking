@@ -6,32 +6,30 @@ use App\Models\User;
 
 class SystemPermissions
 {
-    // Permissions from the database
     const ADD_USER = 'اضافة مستخدم';
     const EDIT_USER = 'تعديل مستخدم';
     const DELETE_USER = 'حذف مستخدم';
     const EDIT_STATUS = 'تعديل الحالة';
     const VIEW_USERS = 'عرض المستخدمين';
-    const ADD_TASK = 'اضافة مهمة';
-    const EDIT_TASK = 'تعديل مهمة';
-    const DELETE_TASK = 'حذف مهمة';
-    const VIEW_TASKS = 'عرض المهام';
-    const ASSIGN_TASK = 'تعيين مهمة';
-    const SUBMIT_TASK = 'تسليم مهمة';
-    const ADD_TASK_CATEGORY = 'اضافة فئة لمهمة';
-    const EDIT_TASK_CATEGORY = 'تعديل فئة لمهمة';
-    const VIEW_TASK_CATEGORIES = 'عرض فئات المهام';
+    const ADD_TASK = 'اضافة تكليف';
+    const EDIT_TASK = 'تعديل تكليف';
+    const DELETE_TASK = 'حذف تكليف';
+    const VIEW_TASKS = 'عرض التكاليف';
+    const ASSIGN_TASK = 'تعيين تكليف';
+    const SUBMIT_TASK = 'تسليم تكليف';
+    const ADD_TASK_CATEGORY = 'اضافة فئة تكليف';
+    const EDIT_TASK_CATEGORY = 'تعديل فئة تكليف';
+    const VIEW_TASK_CATEGORIES = 'عرض فئات التكاليف';
     const ADD_COMMENT = 'اضافة تعليق';
     const ADD_ROLE = 'اضافة دور';
     const EDIT_ROLE = 'تعديل دور';
     const VIEW_ROLES = 'عرض الادوار';
-
-    // not added to database yet
-    const EDIT_SUBMISSION = 'تعديل تسليم';
+    const EDIT_SUBMISSION = 'تعديل تسليم تكليف';
     const VIEW_COMMENTS = 'عرض التعليقات';
-    const VIEW_MY_EMPLOYEES_SUBMISSIONS = 'عرض تسليمات موظفيني'; // all submissions of my employees (even tasks assigned by another manager)
-    const VIEW_MANAGER_EMPLOYEES = 'عرض مستخدمين المدير';
-    const VIEW_ASSIGNED_TASKS = 'عرض المهام الموكلة الي';
+    // const VIEW_MY_EMPLOYEES_SUBMISSIONS = 'عرض تسليمات موظفيني'; // all submissions of my employees (even tasks assigned by another manager)
+    const VIEW_SUBMISSIONS = 'عرض التسليمات'; // my submissions + all submissions of my employees / if he has the permission (even tasks assigned by another manager)
+    const VIEW_MANAGER_EMPLOYEES = 'متابعة الموظفين';
+    const VIEW_ASSIGNED_TASKS = 'عرض تكاليفي'; // المهام الموكلة إلي
 
 
     /**

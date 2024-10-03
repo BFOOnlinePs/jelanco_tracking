@@ -7,13 +7,6 @@ use App\Models\User;
 
 class ManagerEmployeesService
 {
-    /**
-     * Get employee IDs and names (optional) for a given manager ID
-     *
-     * @param int $managerId
-     * @param bool $withInfo
-     * @return array
-     */
     public function getEmployeesByManagerId($managerId, $withInfo = false)
     {
         $employeeIds = ManagerEmployeesModel::where('me_manager_id', $managerId)

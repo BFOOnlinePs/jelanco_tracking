@@ -5,7 +5,6 @@ namespace App\Http\Controllers\ApiControllers\task_controllers;
 use App\Helpers\SystemPermissions;
 use App\Http\Controllers\Controller;
 use App\Models\AttachmentsModel;
-use App\Models\FcmRegistrationTokensModel;
 use App\Models\TaskCategoriesModel;
 use App\Models\TaskModel;
 use App\Models\TaskSubmissionsModel;
@@ -19,7 +18,6 @@ use App\Services\FcmService as ServicesFcmService;
 use App\Services\FileUploadService;
 use App\Services\VideoThumbnailService;
 use Illuminate\Support\Facades\Storage;
-use PSpell\Config;
 
 class TaskController extends Controller
 {
@@ -252,9 +250,11 @@ class TaskController extends Controller
             $users_id = json_decode($task->t_assigned_to);
 
             if (!empty($users_id)) {
+
                 $this->fcmService->sendNotification(
-                    'تكليفك جاهز! تمت الإضافة أو التعديل  من قبل ' . auth()->user()->name,
-                    $task->t_content,
+                    'تكليفك جاهز! تمت الإضافة أو التعديل من قبل ' . auth()->user()->name,
+                    // $truncatedContent,
+                     $task->t_content,
                     $users_id,
                     config('constants.notification_type.task'),
                     $task->t_id
@@ -359,7 +359,7 @@ class TaskController extends Controller
 
             if (!empty($users_id)) {
                 $this->fcmService->sendNotification(
-                    'تكليفك جاهز! تمت الإضافة أو التعديل  من قبل ' . auth()->user()->name,
+                    'تكليفك جاهز! تمت الإضافة أو التعديل من قبل ' . auth()->user()->name,
                     $task->t_content,
                     $users_id,
                     config('constants.notification_type.task'),

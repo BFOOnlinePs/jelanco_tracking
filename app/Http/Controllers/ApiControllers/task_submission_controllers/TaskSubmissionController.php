@@ -5,7 +5,6 @@ namespace App\Http\Controllers\ApiControllers\task_submission_controllers;
 use App\Helpers\SystemPermissions;
 use App\Http\Controllers\Controller;
 use App\Models\AttachmentsModel;
-use App\Models\FcmRegistrationTokensModel;
 use App\Models\TaskModel;
 use App\Models\TaskSubmissionsModel;
 use App\Models\User;
@@ -293,7 +292,7 @@ class TaskSubmissionController extends Controller
         $manager_employee_ids = [];
 
         // if he has the permission
-        if (SystemPermissions::hasPermission(SystemPermissions::VIEW_MY_EMPLOYEES_SUBMISSIONS)) {
+        if (SystemPermissions::hasPermission(SystemPermissions::VIEW_MANAGER_EMPLOYEES)) {
             $manager_employee_ids = $this->managerEmployeesService->getEmployeesByManagerId($user->id);
         }
 
