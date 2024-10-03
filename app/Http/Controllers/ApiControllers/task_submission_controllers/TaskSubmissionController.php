@@ -292,7 +292,7 @@ class TaskSubmissionController extends Controller
         $manager_employee_ids = [];
 
         // if he has the permission
-        if (SystemPermissions::hasPermission(SystemPermissions::VIEW_MY_EMPLOYEES_SUBMISSIONS)) {
+        if (SystemPermissions::hasPermission(SystemPermissions::VIEW_MANAGER_EMPLOYEES)) {
             $manager_employee_ids = $this->managerEmployeesService->getEmployeesByManagerId($user->id);
         }
 
