@@ -55,8 +55,8 @@ class CommentController extends Controller
                 $fileNameWithoutExtension = pathinfo($file_name, PATHINFO_FILENAME);
                 $thumbnail_file_name = $fileNameWithoutExtension . '.' . config('constants.thumbnail_extension');
                 $this->thumbnailService->generateThumbnail(
-                    storage_path('app/public/' . $folderPath . '/' . $file_name),
-                    storage_path('app/public/thumbnails/' . $thumbnail_file_name),
+                    storage_path(config('constants.app_storage_path') . $folderPath . '/' . $file_name),
+                    storage_path(config('constants.thumbnail_storage_path') . $thumbnail_file_name),
                 );
             }
 

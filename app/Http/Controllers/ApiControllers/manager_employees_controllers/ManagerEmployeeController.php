@@ -131,19 +131,28 @@ class ManagerEmployeeController extends Controller
             ]);
         }
 
+
         $manager_id = $request->input('manager_id');
         $employee_ids = $request->input('employee_ids');
 
-        $manager_employees = new ManagerEmployeesModel();
+        // if the manager already has employees then edit them
+        $manager_employees = ManagerEmployeesModel::where('me_manager_id', $manager_id)
+            ->first();
 
-        $manager_employees->me_manager_id = $manager_id;
-        $manager_employees->me_employee_id = $employee_ids; // as json
-        $manager_employees->save();
+        if ($manager_employees) {
+            $manager_employees->me_employee_ids = $employee_ids;
+            $manager_employees->save();
+        } else {
+            // if the manager doesn't have employees then add them
+            $manager_employees = new ManagerEmployeesModel();
+            $manager_employees->me_manager_id = $manager_id;
+            $manager_employees->me_employee_ids = $employee_ids; // as json
+            $manager_employees->save();
+        }
 
         return response()->json([
             'status' => true,
             'message' => 'تمت العملية بنجاح',
         ]);
     }
-
 }
