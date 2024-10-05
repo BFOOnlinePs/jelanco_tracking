@@ -22,4 +22,6 @@ class UserService
         // Return an empty collection if there are no department IDs
         return collect(); // or return [];
     }
+
+
 }

@@ -14,12 +14,12 @@ class SystemPermissions
     const ADD_TASK = 'اضافة تكليف';
     const EDIT_TASK = 'تعديل تكليف';
     const DELETE_TASK = 'حذف تكليف';
-    const VIEW_TASKS = 'عرض التكاليف';
+    const VIEW_TASKS = 'عرض التكليفات';
     const ASSIGN_TASK = 'تعيين تكليف';
     const SUBMIT_TASK = 'تسليم تكليف';
     const ADD_TASK_CATEGORY = 'اضافة فئة تكليف';
     const EDIT_TASK_CATEGORY = 'تعديل فئة تكليف';
-    const VIEW_TASK_CATEGORIES = 'عرض فئات التكاليف';
+    const VIEW_TASK_CATEGORIES = 'عرض فئات التكليفات';
     const ADD_COMMENT = 'اضافة تعليق';
     const ADD_ROLE = 'اضافة دور';
     const EDIT_ROLE = 'تعديل دور';
@@ -29,7 +29,8 @@ class SystemPermissions
     // const VIEW_MY_EMPLOYEES_SUBMISSIONS = 'عرض تسليمات موظفيني'; // all submissions of my employees (even tasks assigned by another manager)
     const VIEW_SUBMISSIONS = 'عرض التسليمات'; // my submissions + all submissions of my employees / if he has the permission (even tasks assigned by another manager)
     const VIEW_MANAGER_EMPLOYEES = 'متابعة الموظفين';
-    const VIEW_ASSIGNED_TASKS = 'عرض تكاليفي'; // المهام الموكلة إلي
+    const VIEW_ASSIGNED_TASKS = 'عرض تكليفاتي'; // المهام الموكلة إلي
+    const USERS_FOLLOW_UP_MANAGEMENT = 'تعيين متابعين';
 
 
     /**
