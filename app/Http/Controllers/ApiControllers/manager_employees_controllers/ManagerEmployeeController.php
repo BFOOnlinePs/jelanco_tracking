@@ -118,9 +118,11 @@ class ManagerEmployeeController extends Controller
         $validator = Validator::make($request->all(), [
             'manager_id' => 'required|exists:users,id',
             'employee_ids' => 'required', // as json
+            // when employee_ids json is empty, so delete the row from database | not used, handled in different way
+            'is_remove' => 'nullable|boolean',
         ], [
-            'manager_id.exists' => 'المدير غير موجود.',
-            'manager_id.required' => 'يجب تحديد المدير.',
+            'manager_id.exists' => 'المسؤول غير موجود.',
+            'manager_id.required' => 'يجب تحديد المسؤول.',
             'employee_ids.required' => 'يجب تحديد الموظفين.',
         ]);
 
@@ -139,6 +141,14 @@ class ManagerEmployeeController extends Controller
         $manager_employees = ManagerEmployeesModel::where('me_manager_id', $manager_id)
             ->first();
 
+        if ($request->input('is_remove')) {
+            $manager_employees->delete();
+            return response()->json([
+                'status' => true,
+                'message' => 'تمت العملية بنجاح',
+            ]);
+        }
+
         if ($manager_employees) {
             $manager_employees->me_employee_ids = $employee_ids;
             $manager_employees->save();
@@ -155,4 +165,39 @@ class ManagerEmployeeController extends Controller
             'message' => 'تمت العملية بنجاح',
         ]);
     }
+
+
+    public function deleteManager(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'manager_id' => 'required|exists:users,id',
+        ], [
+            'manager_id.exists' => 'المسؤول غير موجود.',
+            'manager_id.required' => 'يجب تحديد المسؤول.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(),
+            ]);
+        }
+
+        $manager_employees = ManagerEmployeesModel::where('me_manager_id', $request->input('manager_id'));
+        // if exists delete
+        if (!$manager_employees->exists()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'المسؤول غير موجود.',
+            ]);
+        }
+
+        $manager_employees->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'تم إزالة المسؤول بنجاح',
+        ]);
+    }
+
 }

@@ -106,6 +106,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('users/employees/with-task-assignees', [ManagerEmployeeController::class, 'getManagerEmployeesWithTaskAssignees']);
     Route::get('users/managers', [ManagerEmployeeController::class, 'getManagers']);
     Route::post('users/employees/add-edit', [ManagerEmployeeController::class, 'addEditManagerEmployees']);
+    Route::post('users/managers/delete', [ManagerEmployeeController::class, 'deleteManager']);
 
     // user profile
     Route::get('users/profile/{user_id}', [userController::class, 'getUserProfileById']);
