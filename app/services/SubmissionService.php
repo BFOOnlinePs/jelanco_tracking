@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Helpers\SystemPermissions;
+use App\helpers\SystemPermissions;
 use App\Models\TaskCategoriesModel;
 use App\Models\TaskModel;
 use App\Models\User;

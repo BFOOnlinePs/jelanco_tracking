@@ -4,7 +4,6 @@ namespace App\Http\Controllers\ApiControllers\comment_controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\AttachmentsModel;
-use App\Models\FcmRegistrationTokensModel;
 use App\Models\TaskSubmissionCommentsModel;
 use App\Models\TaskSubmissionsModel;
 use App\Models\User;
@@ -14,7 +13,6 @@ use App\Services\SubmissionService;
 use App\Services\VideoThumbnailService;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use App\Services\FcmService as ServicesFcmService;
 
