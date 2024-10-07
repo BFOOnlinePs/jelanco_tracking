@@ -32,5 +32,4 @@ return [
 
     'app_storage_path' => 'app/public/',
     'thumbnail_storage_path' => 'app/public/thumbnails/',
-
 ];
