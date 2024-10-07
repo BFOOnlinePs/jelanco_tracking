@@ -30,12 +30,6 @@ return [
 
     ],
 
-   
     'app_storage_path' => 'app/public/',
     'thumbnail_storage_path' => 'app/public/thumbnails/',
-
-    // host
-    // 'app_storage_path' => 'app/',
-    // 'thumbnail_storage_path' => 'app/thumbnails/',
-
 ];
