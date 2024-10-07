@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\ApiControllers\task_submission_controllers;
 
-use App\Helpers\SystemPermissions;
+use App\helpers\SystemPermissions;
 use App\Http\Controllers\Controller;
 use App\Models\AttachmentsModel;
 use App\Models\TaskModel;
