@@ -5,6 +5,7 @@ namespace App\Http\Controllers\ApiControllers\task_submission_controllers;
 use App\helpers\SystemPermissions;
 use App\Http\Controllers\Controller;
 use App\Models\AttachmentsModel;
+use App\Models\NotificationModel;
 use App\Models\TaskModel;
 use App\Models\TaskSubmissionsModel;
 use App\Models\User;
@@ -164,7 +165,6 @@ class TaskSubmissionController extends Controller
             // $task_submission->submission_attachments_categories = $submission_media;
 
 
-
             $this->submissionService->processSubmission($task_submission);
 
             $processed_submissions = $this->submissionService->getSubmissionTask($task_submission);
@@ -180,7 +180,26 @@ class TaskSubmissionController extends Controller
                     ->pluck('t_added_by')
                     ->toArray();
 
-                $notification_title = $task_submission->ts_parent_id == -1 ? 'تم تسليم تكليف من قبل ' : 'تم تعديل تكليف من قبل ';
+                $notification_title = $task_submission->ts_parent_id == -1 ? 'تم تسليم تكليف من قبل ' : 'تم تعديل تسليم من قبل ';
+
+
+                // look for old notification for the submission, and change the type-id to the new submission id
+                // so the user will navigate to the last version
+                // for both submissions and comments
+                $old_submissions_notifications = NotificationModel::where('type', config('constants.notification_type.submission'))
+                    ->where('type_id', $request->input('parent_id'))->get();
+
+                $old_comments_notifications = NotificationModel::where('type', config('constants.notification_type.comment'))
+                    ->where('type_id', $request->input('parent_id'))->get();
+
+                $old_notifications = $old_submissions_notifications->merge($old_comments_notifications);
+
+
+                foreach ($old_notifications as $notification) {
+                    $notification->type_id = $task_submission->ts_id;
+                    $notification->save();
+                }
+
 
                 if (!empty($users_id)) {
                     $this->fcmService->sendNotification(
@@ -195,7 +214,7 @@ class TaskSubmissionController extends Controller
 
             return response()->json([
                 'status' => true,
-                'message' => 'تم تسليم التكليف بنجاح',
+                'message' => $task_submission->ts_parent_id == -1 ? 'تم تسليم التكليف بنجاح' : 'تم تعديل التكليف بنجاح ',
                 'task_submission' => $processed_submissions
             ], 200);
         }
