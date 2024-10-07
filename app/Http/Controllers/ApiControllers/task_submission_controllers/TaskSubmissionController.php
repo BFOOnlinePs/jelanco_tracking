@@ -166,6 +166,8 @@ class TaskSubmissionController extends Controller
 
 
             $this->submissionService->processSubmission($task_submission);
+            // get the submission comments
+
 
             $processed_submissions = $this->submissionService->getSubmissionTask($task_submission);
 
@@ -195,7 +197,7 @@ class TaskSubmissionController extends Controller
 
             return response()->json([
                 'status' => true,
-                'message' => 'تم تسليم التكليف بنجاح',
+                'message' => $task_submission->ts_parent_id == -1 ? 'تم تسليم التكليف بنجاح' : 'تم تعديل التكليف بنجاح ',
                 'task_submission' => $processed_submissions
             ], 200);
         }
