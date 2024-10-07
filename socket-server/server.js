@@ -18,7 +18,7 @@ socketServer.on('connection', socket => {
 
   socket.on('new-notification', (data) => {
     console.log('New notification:', data);
-    socketServer.emit('new-notification', data); // Broadcast to all clients)
+    socketServer.emit('new-notification', data); // Broadcast to all clients
   });
 
   socket.on('disconnect', () => {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\ApiControllers\comment_controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\AttachmentsModel;
+use App\Models\TaskModel;
 use App\Models\TaskSubmissionCommentsModel;
 use App\Models\TaskSubmissionsModel;
 use App\Models\User;
@@ -138,10 +139,25 @@ class CommentController extends Controller
             // send notification
 
             // id of the user how added the submission
-            $users_id = TaskSubmissionsModel::where('ts_id', $comment->tsc_task_submission_id)
-                ->whereNot('ts_submitter', $current_user->id) // don't send the notification to the submitter
-                ->pluck('ts_submitter')
-                ->toArray(); // Convert the collection to a plain array;
+            $submitter_id = TaskSubmissionsModel::where('ts_id', $comment->tsc_task_submission_id)
+                ->where('ts_submitter', '!=', $current_user->id)  // don't send the notification to the same user (submitter)
+                ->pluck('ts_submitter');
+
+            // the user who added the task (if exists)
+            $task_creator_id = TaskModel::where('t_id', $comment->tsc_task_id)
+                ->where('t_added_by', '!=', $current_user->id)  // don't send the notification to the same user (task adder)
+                ->pluck('t_added_by');
+
+            // the previous user who added the comment
+            $previous_commenter_ids = TaskSubmissionCommentsModel::where('tsc_task_submission_id', $comment->tsc_task_submission_id)
+                ->where('tsc_commented_by', '!=', $current_user->id) // don't send the notification to the same user (commenter)
+                ->pluck('tsc_commented_by');
+
+            $users_id = collect([$submitter_id, $task_creator_id, $previous_commenter_ids])
+                ->flatten() // turns a multi-dimensional collection or array into a single, one-dimensional collection.
+                ->unique()
+                ->toArray();
+
 
             if (!empty($users_id)) {
                 $this->fcmService->sendNotification(
