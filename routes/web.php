@@ -79,3 +79,7 @@ Route::group(['middleware' => 'auth'], function () {
         return Artisan::call('storage:link');
     });
 });
+
+Route::get('privacy_policy', function(){
+    return view('privacy_policy');
+});
