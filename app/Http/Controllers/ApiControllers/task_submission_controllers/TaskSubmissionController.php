@@ -126,9 +126,32 @@ class TaskSubmissionController extends Controller
 
         // submitter from auth
         $submitter = auth()->user()->id;
-        // $start_time = Carbon::now();
+
+        // in case the submission is not the last version - by accident
+        // (it is a parent for another submission)
+        // then get the last version submission
+
+        // $last_submission_id = $request->input('parent_id');
+        // // Get all version IDs in the chain
+        // $submissionIds = [$last_submission_id]; // Start with the given submission ID
+        // // Loop to find the latest version
+        // while (true) {
+        //     // Try to find a submission where the current submission is the parent
+        //     $nextSubmission = TaskSubmissionsModel::where('ts_parent_id', $last_submission_id)->pluck('ts_id');
+        //     // If no further submission exists, we are at the last version
+        //     if ($nextSubmission->isEmpty()) {
+        //         break;
+        //     }
+
+        //     // Merge new IDs into the array
+        //     $submissionIds = array_merge($submissionIds, $nextSubmission->toArray());
+
+        //     // Move to the next submission in the version chain
+        //     $last_submission_id = $nextSubmission->last();
+        // }
 
         $task_submission = new TaskSubmissionsModel();
+        // $task_submission->ts_parent_id = (int) $last_submission_id;
         $task_submission->ts_parent_id = (int) $request->input('parent_id');
         $task_submission->ts_task_id = (int) $request->input('task_id');
         $task_submission->ts_submitter = $submitter;
@@ -169,6 +192,13 @@ class TaskSubmissionController extends Controller
 
             $processed_submissions = $this->submissionService->getSubmissionTask($task_submission);
 
+            $processed_submissions->submission_categories = $this->submissionService->getSubmissionCategories($processed_submissions->ts_categories);
+
+            // comments
+            if (SystemPermissions::hasPermission(SystemPermissions::VIEW_COMMENTS)) {
+                $processed_submissions->submission_comments = $this->submissionService->getSubmissionComments($task_submission);
+            }
+
 
             Log::info('submissions:');
             Log::info('$task_submission->ts_parent_id ' . $task_submission->ts_task_id);
@@ -182,12 +212,14 @@ class TaskSubmissionController extends Controller
 
                 $notification_title = $task_submission->ts_parent_id == -1 ? 'تم تسليم تكليف من قبل ' : 'تم تعديل تسليم من قبل ';
 
-
                 // look for old notification for the submission, and change the type-id to the new submission id
                 // so the user will navigate to the last version
                 // for both submissions and comments
                 $old_submissions_notifications = NotificationModel::where('type', config('constants.notification_type.submission'))
-                    ->where('type_id', $request->input('parent_id'))->get();
+                    ->where('type_id', $request->input('parent_id'))
+                    // ->whereIn('type_id', $submissionIds) // Use whereIn to filter by multiple IDs
+
+                    ->get();
 
                 $old_comments_notifications = NotificationModel::where('type', config('constants.notification_type.comment'))
                     ->where('type_id', $request->input('parent_id'))->get();
