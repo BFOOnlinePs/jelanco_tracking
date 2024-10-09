@@ -251,14 +251,18 @@ class TaskController extends Controller
 
             if (!empty($users_id)) {
 
-                $this->fcmService->sendNotification(
-                    'تم إضافة / تعديل تكليف من قبل ' . auth()->user()->name,
-                    // $truncatedContent,
-                     $task->t_content,
-                    $users_id,
-                    config('constants.notification_type.task'),
-                    $task->t_id
-                );
+                try {
+                    $this->fcmService->sendNotification(
+                        'تم إضافة / تعديل تكليف من قبل ' . auth()->user()->name,
+                        // $truncatedContent,
+                        $task->t_content,
+                        $users_id,
+                        config('constants.notification_type.task'),
+                        $task->t_id
+                    );
+                } catch (\Throwable $th) {
+                    Log::error($th->getMessage());
+                }
             }
 
             return response()->json([
@@ -358,13 +362,18 @@ class TaskController extends Controller
             $users_id = json_decode($task->t_assigned_to);
 
             if (!empty($users_id)) {
-                $this->fcmService->sendNotification(
-                    'تم إضافة / تعديل تكليف من قبل ' . auth()->user()->name,
-                    $task->t_content,
-                    $users_id,
-                    config('constants.notification_type.task'),
-                    $task->t_id
-                );
+
+                try {
+                    $this->fcmService->sendNotification(
+                        'تم إضافة / تعديل تكليف من قبل ' . auth()->user()->name,
+                        $task->t_content,
+                        $users_id,
+                        config('constants.notification_type.task'),
+                        $task->t_id
+                    );
+                } catch (\Throwable $th) {
+                    Log::error($th->getMessage());
+                }
             }
 
             return response()->json([

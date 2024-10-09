@@ -131,28 +131,28 @@ class TaskSubmissionController extends Controller
         // (it is a parent for another submission)
         // then get the last version submission
 
-        // $last_submission_id = $request->input('parent_id');
-        // // Get all version IDs in the chain
-        // $submissionIds = [$last_submission_id]; // Start with the given submission ID
-        // // Loop to find the latest version
-        // while (true) {
-        //     // Try to find a submission where the current submission is the parent
-        //     $nextSubmission = TaskSubmissionsModel::where('ts_parent_id', $last_submission_id)->pluck('ts_id');
-        //     // If no further submission exists, we are at the last version
-        //     if ($nextSubmission->isEmpty()) {
-        //         break;
-        //     }
+        $last_submission_id = $request->input('parent_id');
+        // Get all version IDs in the chain
+        $submissionIds = [$last_submission_id]; // Start with the given submission ID
+        // Loop to find the latest version
+        while (true) {
+            // Try to find a submission where the current submission is the parent
+            $nextSubmission = TaskSubmissionsModel::where('ts_parent_id', $last_submission_id)->pluck('ts_id');
+            // If no further submission exists, we are at the last version
+            if ($nextSubmission->isEmpty()) {
+                break;
+            }
 
-        //     // Merge new IDs into the array
-        //     $submissionIds = array_merge($submissionIds, $nextSubmission->toArray());
+            // Merge new IDs into the array
+            $submissionIds = array_merge($submissionIds, $nextSubmission->toArray());
 
-        //     // Move to the next submission in the version chain
-        //     $last_submission_id = $nextSubmission->last();
-        // }
+            // Move to the next submission in the version chain
+            $last_submission_id = $nextSubmission->last();
+        }
 
         $task_submission = new TaskSubmissionsModel();
         // $task_submission->ts_parent_id = (int) $last_submission_id;
-        $task_submission->ts_parent_id = (int) $request->input('parent_id');
+        $task_submission->ts_parent_id = $last_submission_id; // (int) $request->input('parent_id');
         $task_submission->ts_task_id = (int) $request->input('task_id');
         $task_submission->ts_submitter = $submitter;
         $task_submission->ts_content = $request->input('content');
@@ -232,15 +232,18 @@ class TaskSubmissionController extends Controller
                     $notification->save();
                 }
 
-
-                if (!empty($users_id)) {
-                    $this->fcmService->sendNotification(
-                        $notification_title . auth()->user()->name,
-                        $task_submission->ts_content,
-                        $users_id,
-                        config('constants.notification_type.submission'),
-                        $task_submission->ts_id
-                    );
+                try {
+                    if (!empty($users_id)) {
+                        $this->fcmService->sendNotification(
+                            $notification_title . auth()->user()->name,
+                            $task_submission->ts_content,
+                            $users_id,
+                            config('constants.notification_type.submission'),
+                            $task_submission->ts_id
+                        );
+                    }
+                } catch (\Throwable $th) {
+                    Log::error($th->getMessage());
                 }
             }
 
