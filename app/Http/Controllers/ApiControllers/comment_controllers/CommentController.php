@@ -16,6 +16,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Services\FcmService as ServicesFcmService;
+use Illuminate\Support\Facades\Log;
 
 class CommentController extends Controller
 {
@@ -159,15 +160,21 @@ class CommentController extends Controller
                 ->toArray();
 
 
-            if (!empty($users_id)) {
-                $this->fcmService->sendNotification(
-                    'تم إضافة تعليق من قبل ' . auth()->user()->name,
-                    $comment->tsc_content,
-                    $users_id, // id of a single user, saved as array
-                    config('constants.notification_type.comment'),
-                    $comment->tsc_task_submission_id // id of the submission
-                );
+            try {
+                if (!empty($users_id)) {
+                    $this->fcmService->sendNotification(
+                        'تم إضافة تعليق من قبل ' . auth()->user()->name,
+                        $comment->tsc_content,
+                        $users_id, // id of a single user, saved as array
+                        config('constants.notification_type.comment'),
+                        $comment->tsc_task_submission_id // id of the submission
+                    );
+                }
+            } catch (\Throwable $th) {
+                Log::error($th->getMessage());
             }
+
+
 
             return response()->json([
                 'status' => true,

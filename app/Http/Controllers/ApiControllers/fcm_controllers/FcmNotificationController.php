@@ -13,29 +13,29 @@ use Illuminate\Http\Request;
 class FcmNotificationController extends Controller
 {
 
-    protected $fcmService;
+    // protected $fcmService;
 
-    public function __construct(ServicesFcmService $fcmService)
-    {
-        $this->fcmService = $fcmService;
-    }
+    // public function __construct(ServicesFcmService $fcmService)
+    // {
+    //     $this->fcmService = $fcmService;
+    // }
 
 
 
-    public function notify(Request $request)
-    {
-        $token = $request->input('fcm_token');
-        $title = 'New Notification';
-        $body = 'You have a new message';
+    // public function notify(Request $request)
+    // {
+    //     $token = $request->input('fcm_token');
+    //     $title = 'New Notification';
+    //     $body = 'You have a new message';
 
-        // $fcmService = new FcmService();
-        // $fcmService->sendNotification($title, $body, $token);
+    //     // $fcmService = new FcmService();
+    //     // $fcmService->sendNotification($title, $body, $token);
 
-        //
-        // $this->fcmService->sendNotification($title, $body, $token);
+    //     //
+    //     // $this->fcmService->sendNotification($title, $body, $token);
 
-        return response()->json(['message' => 'Notification sent successfully']);
-    }
+    //     return response()->json(['message' => 'Notification sent successfully']);
+    // }
 
 
 

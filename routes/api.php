@@ -5,7 +5,6 @@ use App\Http\Controllers\ApiControllers\auth_controllers\LogoutController;
 use App\Http\Controllers\ApiControllers\auth_controllers\SignupController;
 use App\Http\Controllers\ApiControllers\comment_controllers\CommentController;
 use App\Http\Controllers\ApiControllers\fcm_controllers\FcmController;
-use App\Http\Controllers\ApiControllers\fcm_controllers\FcmNotificationController;
 use App\Http\Controllers\ApiControllers\fcm_controllers\NotificationController;
 use App\Http\Controllers\ApiControllers\manager_employees_controllers\ManagerEmployeeController;
 use App\Http\Controllers\ApiControllers\task_category_controllers\TaskCategoryController;
@@ -13,9 +12,6 @@ use App\Http\Controllers\ApiControllers\task_controllers\TaskAssignmentControlle
 use App\Http\Controllers\ApiControllers\task_controllers\TaskController;
 use App\Http\Controllers\ApiControllers\task_submission_controllers\TaskSubmissionController;
 use App\Http\Controllers\ApiControllers\user_controllers\userController;
-use App\Models\TaskModel;
-use App\Models\User;
-use App\Notifications\TaskNotification;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -28,43 +24,6 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-
-
-use Kreait\Firebase\Factory;
-
-Route::get('/firebase-check', function () {
-    $factory = (new Factory)->withServiceAccount(config('firebase.projects.app.credentials'));
-    $auth = $factory->createAuth();
-
-    return 'Firebase service is working!';
-});
-
-Route::get('/test-notification', function () {
-    $user = User::find(1); // Adjust to match your setup
-    $task = TaskModel::find(55); // Adjust to match your setup
-    $user->notify(new TaskNotification($task));
-    return 'Notification sent';
-});
-
-Route::get('/test-firebase', function () {
-    try {
-        $factory = (new Factory)->withServiceAccount(config('firebase.projects.app.credentials'))
-            ->withProjectId(config('firebase.projects.app.project_id'));
-        $messaging = $factory->createMessaging();
-        return response()->json(['status' => 'Firebase initialized successfully.']);
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()], 500);
-    }
-});
-
-
-
-
-Route::post('/send-notification', [NotificationController::class, 'sendNotification']);
-
-Route::post('/send-notification-fcm', [FcmNotificationController::class, 'notify']); //
-Route::post('send/notification', [NotificationController::class, 'notification']);
-
 
 
 Route::post('/login', [LoginController::class, 'userLogin']);
