@@ -34,6 +34,7 @@ class UsersController extends Controller
         $data->name = $request->name;
         $data->email = $request->email;
         $data->password = Hash::make($request->password);
+        $data->phone_number = $request->phone_number;
         if($data->save()){
             $role = Role::findById($request->role);
             $data->assignRole($role);
@@ -57,6 +58,7 @@ class UsersController extends Controller
         $data = User::where('id',$request->id)->first();
         $data->name = $request->name;
         $data->email = $request->email;
+        $data->phone_number = $request->phone_number;
         if($request->filled('password')){
             $data->password = Hash::make($request->password);
         }

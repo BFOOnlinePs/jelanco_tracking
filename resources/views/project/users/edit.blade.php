@@ -22,7 +22,7 @@
                         <div class="row">
                             <div class="col-md-8">
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-md-12">
                                         <div class="form-group">
                                             <label for="">اسم المستخدم</label>
                                             <input required type="text" value="{{ $data->name }}" name="name"
@@ -34,6 +34,13 @@
                                             <label for="">الايميل</label>
                                             <input required type="email" value="{{ $data->email }}" name="email"
                                                 class="form-control" placeholder="الايميل">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="">رقم الهاتف</label>
+                                            <input required type="number" value="{{ $data->phone_number }}"
+                                                name="phone_number" class="form-control" placeholder="رقم الهاتف">
                                         </div>
                                     </div>
                                     <div class="col-md-12">
