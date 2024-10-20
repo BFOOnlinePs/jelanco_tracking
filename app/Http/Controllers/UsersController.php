@@ -32,7 +32,12 @@ class UsersController extends Controller
     {
         $data = new User();
         $data->name = $request->name;
-        $data->email = $request->email;
+        if($request->filled('email')){
+            $data->email = $request->email ;
+        }
+        else{
+            $data->email = $request->phone_number + '@jelanco.com';
+        }
         $data->password = Hash::make($request->password);
         $data->phone_number = $request->phone_number;
         if($data->save()){
@@ -57,7 +62,12 @@ class UsersController extends Controller
     {
         $data = User::where('id',$request->id)->first();
         $data->name = $request->name;
-        $data->email = $request->email;
+        if($request->filled('email')){
+            $data->email = $request->email ;
+        }
+        else{
+            $data->email = $request->phone_number . '@jelanco.com';
+        }
         $data->phone_number = $request->phone_number;
         if($request->filled('password')){
             $data->password = Hash::make($request->password);

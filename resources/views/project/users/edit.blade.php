@@ -32,7 +32,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="">الايميل</label>
-                                            <input required type="email" value="{{ $data->email }}" name="email"
+                                            <input type="email" value="{{ $data->email }}" name="email"
                                                 class="form-control" placeholder="الايميل">
                                         </div>
                                     </div>
@@ -52,7 +52,7 @@
                                     </div>
                                     <div class="col-md-12">
                                         <div class="form-group">
-                                            <label for="">اضافة دور</label>
+                                            <label for="">تعديل دور</label>
                                             <select class="form-control" required name="role" id="">
                                                 <option value="">اختر دور</option>
                                                 @foreach ($roles as $key)
