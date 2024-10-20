@@ -2,7 +2,8 @@
     <thead>
         <tr>
             <th>اسم المستخدم</th>
-            <th>كلمة الايميل</th>
+            <th>الايميل</th>
+            <th>رقم الهاتف</th>
             @can('تعديل مستخدم')
                 <th>العمليات</th>
             @endcan
@@ -18,6 +19,7 @@
                 <tr>
                     <td>{{ $key->name }}</td>
                     <td>{{ $key->email }}</td>
+                    <td>{{ $key->phone_number }}</td>
                     @can('تعديل مستخدم')
                         <td>
                             <a href="{{ route('users.edit', ['id' => $key->id]) }}" class="btn btn-sm btn-success"><span
