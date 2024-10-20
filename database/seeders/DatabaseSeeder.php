@@ -12,9 +12,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call(){
-            PermissionsTableSeeder::class
-        }
+        // Call the PermissionsTableSeeder
+        $this->call(PermissionsTableSeeder::class);
+
+        // Uncomment the following lines if you want to create dummy users
         // \App\Models\User::factory(10)->create();
 
         // \App\Models\User::factory()->create([
