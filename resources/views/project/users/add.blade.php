@@ -21,22 +21,32 @@
                         <div class="row">
                             <div class="col-md-8">
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-md-12">
                                         <div class="form-group">
                                             <label for="">اسم المستخدم</label>
-                                            <input required type="text" name="name" class="form-control" placeholder="اسم المستخدم">
+                                            <input required type="text" name="name" class="form-control"
+                                                placeholder="اسم المستخدم">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="">الايميل</label>
-                                            <input required type="email" name="email" class="form-control" placeholder="الايميل">
+                                            <input required type="email" name="email" class="form-control"
+                                                placeholder="الايميل">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="">رقم الهاتف</label>
+                                            <input required type="number" name="phone_number" class="form-control"
+                                                placeholder="رقم الهاتف">
                                         </div>
                                     </div>
                                     <div class="col-md-12">
                                         <div class="form-group">
                                             <label for="">كلمة المرور</label>
-                                            <input required type="password" name="password" class="form-control" placeholder="كلمة المرور">
+                                            <input required type="password" name="password" class="form-control"
+                                                placeholder="كلمة المرور">
                                         </div>
                                     </div>
                                     <div class="col-md-12">
@@ -44,7 +54,7 @@
                                             <label for="">اضافة دور</label>
                                             <select class="form-control" required name="role" id="">
                                                 <option value="">اختر دور</option>
-                                                @foreach($roles as $key)
+                                                @foreach ($roles as $key)
                                                     <option value="{{ $key->id }}">{{ $key->name }}</option>
                                                 @endforeach
                                             </select>
@@ -67,9 +77,10 @@
 @endsection
 @section('script')
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
 
         });
+
         function list_users_ajax() {
             $.ajaxSetup({
                 headers: {
@@ -80,7 +91,7 @@
                 url: '{{ route('users.list_users_ajax') }}',
                 type: 'post',
                 dataType: 'json',
-                data:{
+                data: {
 
                 },
                 success: function(response) {
@@ -93,4 +104,3 @@
         }
     </script>
 @endsection
-
