@@ -33,14 +33,14 @@
                 <form action="{{ 'login' }}" method="post">
                     @csrf
                     <div class="input-group mb-3">
-                        <input type="login" name="login" class="form-control" placeholder="Email or Phone">
+                        <input type="login" name="email" class="form-control" placeholder="Email or Phone">
                         <div class="input-group-append">
                             <div class="input-group-text">
                                 <span class="fas fa-envelope"></span>
                             </div>
                         </div>
                         @error('email')
-                            <span class="text-danger">{{ $message }}</span>
+                            <p class="text-danger">{{ $message }}</p>
                         @enderror
                     </div>
                     <div class="input-group mb-3">
@@ -51,7 +51,7 @@
                             </div>
                         </div>
                         @error('password')
-                            <span class="text-danger">{{ $message }}</span>
+                            <p class="text-danger">{{ $message }}</p>
                         @enderror
                     </div>
                     <div class="row">
