@@ -36,6 +36,7 @@
     "url": "https://github.com/dangrossman/daterangepicker/issues"
   },
   "dependencies": {
+    "daterangepicker": "file:",
     "jquery": ">=1.10",
     "moment": "^2.9.0"
   },

@@ -49,16 +49,19 @@ return [
              * first time you try to access a component of the Firebase Admin SDK.
              *
              */
+            // 'credentials' => env('FIREBASE_CREDENTIALS'),
 
             'credentials' => env('FIREBASE_CREDENTIALS', env('GOOGLE_APPLICATION_CREDENTIALS')),
-            // 'credentials' => env('FIREBASE_CREDENTIALS'),
+
+
+            // added by Aseel
+            'project_id' => env('FIREBASE_PROJECT_ID'),
+
             /*
              * ------------------------------------------------------------------------
              * Firebase Auth Component
              * ------------------------------------------------------------------------
              */
-
-            'project_id' => env('FIREBASE_PROJECT_ID'),
 
             'auth' => [
                 'tenant_id' => env('FIREBASE_AUTH_TENANT_ID'),
