@@ -32,10 +32,11 @@
   "bugs": {
     "url": "https://fullcalendar.io/reporting-bugs"
   },
-  "bundleDependencies": false,
+  "bundleDependencies": [],
   "copyright": "2019 Adam Shaw",
   "dependencies": {
-    "@fullcalendar/daygrid": "~4.3.0"
+    "@fullcalendar/daygrid": "~4.3.0",
+    "@fullcalendar/timegrid": "file:"
   },
   "deprecated": false,
   "description": "Display your events on a grid of time slots",

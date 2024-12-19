@@ -30,7 +30,7 @@
   "bugs": {
     "url": "https://github.com/DmitryBaranovskiy/raphael/issues"
   },
-  "bundleDependencies": false,
+  "bundleDependencies": [],
   "contributors": [
     {
       "name": "Tomas Alabes",
@@ -38,7 +38,8 @@
     }
   ],
   "dependencies": {
-    "eve-raphael": "0.5.0"
+    "eve-raphael": "0.5.0",
+    "raphael": "file:"
   },
   "deprecated": false,
   "description": "JavaScript Vector Library",
