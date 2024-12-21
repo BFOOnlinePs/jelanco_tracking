@@ -114,11 +114,7 @@ class userController extends Controller
     public function getUserById($id)
     {
         $user = User::find($id);
-        // Get the user's departments using the UserService
-        $departments = $this->userService->getUserDepartments($id);
-
-        // Attach the departments to the user object
-        $user->user_departments = $departments;
+        $user->user_departments = $this->userService->getUserDepartments($id);
         $permissions = User::find($id)->getAllPermissions();
 
         return response()->json([
@@ -128,10 +124,9 @@ class userController extends Controller
         ]);
     }
 
-    // only id, name and image
     public function getAllUsers()
     {
-        $users = User::select('id', 'name', 'image')->get();
+        $users = User::select('id', 'name', 'image', 'job_title')->get();
 
         return response()->json([
             'status' => true,

@@ -2,8 +2,8 @@
 
 use App\Http\Controllers\ApiControllers\auth_controllers\LoginController;
 use App\Http\Controllers\ApiControllers\auth_controllers\LogoutController;
-use App\Http\Controllers\ApiControllers\auth_controllers\SignupController;
 use App\Http\Controllers\ApiControllers\comment_controllers\CommentController;
+use App\Http\Controllers\ApiControllers\department_controllers\DepartmentControllers;
 use App\Http\Controllers\ApiControllers\fcm_controllers\FcmController;
 use App\Http\Controllers\ApiControllers\fcm_controllers\NotificationController;
 use App\Http\Controllers\ApiControllers\manager_employees_controllers\ManagerEmployeeController;
@@ -12,6 +12,7 @@ use App\Http\Controllers\ApiControllers\task_controllers\TaskAssignmentControlle
 use App\Http\Controllers\ApiControllers\task_controllers\TaskController;
 use App\Http\Controllers\ApiControllers\task_submission_controllers\TaskSubmissionController;
 use App\Http\Controllers\ApiControllers\user_controllers\userController;
+use App\Http\Controllers\ApiControllers\user_controllers\UsersManagementController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -27,10 +28,6 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::post('/login', [LoginController::class, 'userLogin']);
-Route::post('register', [SignupController::class, 'signUp']);
-
-Route::get('users', [userController::class, 'getAllUsers']);
-
 
 // FCM
 Route::post('/storeFcmUserToken', [FcmController::class, 'storeFcmUserToken']);
@@ -67,13 +64,20 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('users/employees/add-edit', [ManagerEmployeeController::class, 'addEditManagerEmployees']);
     Route::post('users/managers/delete', [ManagerEmployeeController::class, 'deleteManager']);
 
+    // user
+    Route::get('users', [userController::class, 'getAllUsers']);
+    Route::get('users/{id}', [userController::class, 'getUserById']);
+    Route::post('users', [UsersManagementController::class, 'addUser']);
+
     // user profile
     Route::get('users/profile/{user_id}', [userController::class, 'getUserProfileById']);
     Route::post('users/profile/image', [userController::class, 'updateProfileImage']);
-    Route::get('users/{id}', [userController::class, 'getUserById']);
 
     // task categories
     Route::get('task-categories', [TaskCategoryController::class, 'getTaskCategories']);
+
+    // departments
+    Route::get('departments', [DepartmentControllers::class, 'getDepartments']);
 
     // comments
     Route::post('comments', [CommentController::class, 'addTaskSubmissionComment']);
