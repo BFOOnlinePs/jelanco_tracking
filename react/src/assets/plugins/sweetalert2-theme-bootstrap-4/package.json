@@ -28,7 +28,7 @@
   "bugs": {
     "url": "https://github.com/sweetalert2/sweetalert2-themes/issues"
   },
-  "bundleDependencies": false,
+  "bundleDependencies": [],
   "deprecated": false,
   "description": "Bootstrap 4 theme for SweetAlert2",
   "files": [
@@ -51,5 +51,8 @@
     "type": "git",
     "url": "git+https://github.com/sweetalert2/sweetalert2-themes.git"
   },
-  "version": "2.1.0"
+  "version": "2.1.0",
+  "dependencies": {
+    "@sweetalert2/theme-bootstrap-4": "file:"
+  }
 }

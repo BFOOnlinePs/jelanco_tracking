@@ -61,12 +61,9 @@ class FcmService
 
 
 
-    /**
-     * Helper function to send a notification to a specific token.
-     */
+
     private function sendToToken($title, $body, $userId, $token, $type, $type_id)
     {
-        // Create a notification object for FCM
         $notification = Notification::create($title, $body);
 
         // Create a message targeting a specific token
@@ -87,13 +84,6 @@ class FcmService
         if (!empty($data)) {
             $message = $message->withData($data);
         }
-
-        // try {
-        //     // Emit the event to the Socket.IO server
-        //     $this->emitSocketIOEvent();
-        // } catch (Exception $e) {
-        //     Log::info('Aseel Error emitting event: ' . $e->getMessage());
-        // };
 
         try {
             // Send the message via FCM
@@ -116,18 +106,4 @@ class FcmService
             Log::info('Error sending message: ' . $e->getMessage());
         }
     }
-
-
-    // protected function emitSocketIOEvent()
-    // {
-    //     $client = new \GuzzleHttp\Client();
-    //     $url = config('constants.socket_io_url');
-    //     Log::info('Socket.IO URL: ' . $url);
-    //     $client->post($url, [
-    //         'json' => [
-    //             'event' => 'new-notification',
-    //             // 'dataaaa' => $notification',
-    //         ]
-    //     ]);
-    // }
 }

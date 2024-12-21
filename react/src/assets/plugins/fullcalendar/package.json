@@ -32,7 +32,7 @@
   "bugs": {
     "url": "https://fullcalendar.io/reporting-bugs"
   },
-  "bundleDependencies": false,
+  "bundleDependencies": [],
   "copyright": "2019 Adam Shaw",
   "deprecated": false,
   "description": "Provides core functionality, including the Calendar class",
@@ -55,5 +55,8 @@
   "title": "FullCalendar Core Package",
   "types": "main.d.ts",
   "unpkg": "main.min.js",
-  "version": "4.3.1"
+  "version": "4.3.1",
+  "dependencies": {
+    "@fullcalendar/core": "file:"
+  }
 }

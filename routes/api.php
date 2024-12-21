@@ -4,6 +4,7 @@ use App\Http\Controllers\ApiControllers\auth_controllers\LoginController;
 use App\Http\Controllers\ApiControllers\auth_controllers\LogoutController;
 use App\Http\Controllers\ApiControllers\auth_controllers\SignupController;
 use App\Http\Controllers\ApiControllers\comment_controllers\CommentController;
+use App\Http\Controllers\ApiControllers\department_controllers\DepartmentControllers;
 use App\Http\Controllers\ApiControllers\fcm_controllers\FcmController;
 use App\Http\Controllers\ApiControllers\fcm_controllers\NotificationController;
 use App\Http\Controllers\ApiControllers\manager_employees_controllers\ManagerEmployeeController;
@@ -74,6 +75,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     // task categories
     Route::get('task-categories', [TaskCategoryController::class, 'getTaskCategories']);
+
+    // departments
+    Route::get('departments', [DepartmentControllers::class, 'getDepartments']);
 
     // comments
     Route::post('comments', [CommentController::class, 'addTaskSubmissionComment']);
