@@ -68,6 +68,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('users', [userController::class, 'getAllUsers']);
     Route::get('users/{id}', [userController::class, 'getUserById']);
     Route::post('users', [UsersManagementController::class, 'addUser']);
+    Route::post('users/{id}', [UsersManagementController::class, 'updateUser']);
 
     // user profile
     Route::get('users/profile/{user_id}', [userController::class, 'getUserProfileById']);

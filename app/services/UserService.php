@@ -11,11 +11,11 @@ class UserService
     {
         $user = User::find($userId);
 
-        // Decode the JSON field to get the departments (assuming it's an array of department IDs)
         $departmentIds = json_decode($user->departments, true);
+
         if (!empty($departmentIds)) {
             return DepartmentModel::whereIn('d_id', $departmentIds)
-                ->select('d_id', 'd_name')
+                // ->select('d_id', 'd_name')
                 ->get();
         }
 

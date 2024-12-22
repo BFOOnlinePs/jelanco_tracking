@@ -124,13 +124,27 @@ class userController extends Controller
         ]);
     }
 
-    public function getAllUsers()
+    public function getAllUsers(Request $request)
     {
-        $users = User::select('id', 'name', 'image', 'job_title')->get();
+        // Check if pagination is requested
+        if ($request->has('paginate') && $request->paginate) {
+            $users = User::select('id', 'name', 'image', 'job_title')
+                ->orderBy('updated_at', 'desc')
+                ->paginate(10);
+        } else {
+            // Return all users
+            $users = User::select('id', 'name', 'image', 'job_title')->get();
+        }
 
         return response()->json([
             'status' => true,
-            'users' => $users
+            'pagination' => $request->has('paginate') && $request->paginate ? [
+                'current_page' => $users->currentPage(),
+                'last_page' => $users->lastPage(),
+                'per_page' => $users->perPage(),
+                'total_items' => $users->total(),
+            ] : null,
+            'users' => $request->has('paginate') && $request->paginate ? $users->values() : $users
         ]);
     }
 }
