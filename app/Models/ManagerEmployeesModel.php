@@ -12,4 +12,9 @@ class ManagerEmployeesModel extends Model
     protected $table = 'manager_employees';
     protected $primaryKey = 'me_id';
 
+    protected $fillable = [
+        'me_manager_id',
+        'me_employee_id',
+    ];
+
 }
