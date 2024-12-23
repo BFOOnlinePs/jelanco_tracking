@@ -33,11 +33,15 @@ class ManagerEmployeeController extends Controller
 
     public function getManagerEmployeesById($manager_id)
     {
-        $manager_employees = $this->managerEmployeesService->getEmployeesByManagerId($manager_id, true);
+        $user_employees = $this->managerEmployeesService->getEmployeesByManagerId($manager_id, true);
+        // the user_managers so they will be disabled in front end list
+        $user_manager_ids = ManagerEmployeesModel::whereJsonContains('me_employee_ids', strval($manager_id))
+            ->pluck('me_manager_id');
 
         return response()->json([
             'status' => true,
-            'manager_employees' => $manager_employees
+            'user_manager_ids' => $user_manager_ids,
+            'manager_employees' => $user_employees
         ]);
     }
 
@@ -117,8 +121,8 @@ class ManagerEmployeeController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'manager_id' => 'required|exists:users,id',
-            'employee_ids' => 'required', // as json
-            // when employee_ids json is empty, so delete the row from database | not used, handled in different way
+            'employee_ids' => 'nullable', // as json
+            // when employee_ids json is empty, so delete the row from database
             'is_remove' => 'nullable|boolean',
         ], [
             'manager_id.exists' => 'المسؤول غير موجود.',
@@ -170,7 +174,7 @@ class ManagerEmployeeController extends Controller
     public function assignEmployeeForManagers(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'manager_ids' => 'required|array',
+            'manager_ids' => 'nullable|array',
             'manager_ids.*' => 'integer|exists:users,id',
             'employee_id' => 'required|integer|exists:users,id',
         ]);
