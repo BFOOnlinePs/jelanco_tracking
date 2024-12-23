@@ -129,6 +129,9 @@ class userController extends Controller
         // Check if pagination is requested
         if ($request->has('paginate') && $request->paginate) {
             $users = User::select('id', 'name', 'image', 'job_title')
+                ->when(request('search'), function ($query, $search) {
+                    return $query->where('name', 'LIKE', "%{$search}%");
+                })
                 ->orderBy('updated_at', 'desc')
                 ->paginate(10);
         } else {
