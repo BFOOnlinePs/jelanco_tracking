@@ -33,11 +33,15 @@ class ManagerEmployeeController extends Controller
 
     public function getManagerEmployeesById($manager_id)
     {
-        $manager_employees = $this->managerEmployeesService->getEmployeesByManagerId($manager_id, true);
+        $user_employees = $this->managerEmployeesService->getEmployeesByManagerId($manager_id, true);
+        // the user_managers so they will be disabled in front end list
+        $user_manager_ids = ManagerEmployeesModel::whereJsonContains('me_employee_ids', strval($manager_id))
+            ->pluck('me_manager_id');
 
         return response()->json([
             'status' => true,
-            'manager_employees' => $manager_employees
+            'user_manager_ids' => $user_manager_ids,
+            'manager_employees' => $user_employees
         ]);
     }
 
@@ -117,8 +121,8 @@ class ManagerEmployeeController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'manager_id' => 'required|exists:users,id',
-            'employee_ids' => 'required', // as json
-            // when employee_ids json is empty, so delete the row from database | not used, handled in different way
+            'employee_ids' => 'nullable', // as json
+            // when employee_ids json is empty, so delete the row from database
             'is_remove' => 'nullable|boolean',
         ], [
             'manager_id.exists' => 'المسؤول غير موجود.',
@@ -167,6 +171,81 @@ class ManagerEmployeeController extends Controller
     }
 
 
+    public function assignEmployeeForManagers(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'manager_ids' => 'nullable|array',
+            'manager_ids.*' => 'integer|exists:users,id',
+            'employee_id' => 'required|integer|exists:users,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(),
+            ]);
+        }
+
+        $employeeId = (string) $request->input('employee_id');
+        $managerIds = $request->input('manager_ids');
+
+        foreach ($managerIds as $managerId) {
+            // Check if the row exists for the manager
+            $row = ManagerEmployeesModel::where('me_manager_id', $managerId)->first();
+
+            if ($row) {
+                $employeeIds = array_map('strval', json_decode($row->me_employee_ids, true) ?? []);
+
+                // Add the new employee if not already in the list
+                if (!in_array($employeeId, $employeeIds)) {
+                    $employeeIds[] = $employeeId;
+                }
+
+                // Update or delete the row based on the updated employee list
+                if (!empty($employeeIds)) {
+                    ManagerEmployeesModel::where('me_manager_id', $managerId)
+                        ->update(['me_employee_ids' => json_encode(array_values($employeeIds))]);
+                } else {
+                    ManagerEmployeesModel::where('me_manager_id', $managerId)
+                        ->delete();
+                }
+            } else {
+                // Add a new row if it doesn't exist
+                ManagerEmployeesModel::insert([
+                    'me_manager_id' => $managerId,
+                    'me_employee_ids' => json_encode([(string) $employeeId]),
+                ]);
+            }
+        }
+
+        // Remove the employee from managers not in the input list
+        $rowsToUpdate = ManagerEmployeesModel::whereNotIn('me_manager_id', $managerIds)
+            ->whereJsonContains('me_employee_ids', $employeeId)
+            ->get();
+
+        foreach ($rowsToUpdate as $row) {
+            $employeeIds = array_map('strval', json_decode($row->me_employee_ids, true) ?? []);
+            $employeeIds = array_values(array_diff($employeeIds, [$employeeId])); // Remove the employee ID
+
+            if (!empty($employeeIds)) {
+                // Update the row if there are remaining employees
+                ManagerEmployeesModel::where('me_manager_id', $row->me_manager_id)
+                    ->update(['me_employee_ids' => json_encode($employeeIds)]);
+            } else {
+                // Delete the row if no employees remain
+                ManagerEmployeesModel::where('me_manager_id', $row->me_manager_id)
+                    ->delete();
+            }
+        }
+
+
+        return response()->json([
+            'status' => true,
+            'message' => 'تمت العملية بنجاح',
+        ]);
+    }
+
+
     public function deleteManager(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -200,4 +279,24 @@ class ManagerEmployeeController extends Controller
         ]);
     }
 
+    public function getManagersAndEmployeesOfUser($user_id)
+    {
+        $user_managers = ManagerEmployeesModel::whereJsonContains('me_employee_ids', strval($user_id))
+            ->pluck('me_manager_id');
+        $user_employees = ManagerEmployeesModel::where('me_manager_id', $user_id)
+            ->pluck('me_employee_ids')
+            ->first();
+
+        $user_employees = $user_employees ? collect(json_decode($user_employees))
+            ->map(function ($id) {
+                return (int)$id;
+            })
+            ->toArray() : [];
+
+        return response()->json([
+            'status' => true,
+            'manager_ids' => $user_managers,
+            'employee_ids' => $user_employees
+        ]);
+    }
 }

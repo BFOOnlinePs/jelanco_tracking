@@ -114,11 +114,7 @@ class userController extends Controller
     public function getUserById($id)
     {
         $user = User::find($id);
-        // Get the user's departments using the UserService
-        $departments = $this->userService->getUserDepartments($id);
-
-        // Attach the departments to the user object
-        $user->user_departments = $departments;
+        $user->user_departments = $this->userService->getUserDepartments($id);
         $permissions = User::find($id)->getAllPermissions();
 
         return response()->json([
@@ -128,14 +124,30 @@ class userController extends Controller
         ]);
     }
 
-    // only id, name and image
-    public function getAllUsers()
+    public function getAllUsers(Request $request)
     {
-        $users = User::select('id', 'name', 'image')->get();
+        // Check if pagination is requested
+        if ($request->has('paginate') && $request->paginate) {
+            $users = User::select('id', 'name', 'image', 'job_title')
+                ->when(request('search'), function ($query, $search) {
+                    return $query->where('name', 'LIKE', "%{$search}%");
+                })
+                ->orderBy('updated_at', 'desc')
+                ->paginate(10);
+        } else {
+            // Return all users
+            $users = User::select('id', 'name', 'image', 'job_title')->get();
+        }
 
         return response()->json([
             'status' => true,
-            'users' => $users
+            'pagination' => $request->has('paginate') && $request->paginate ? [
+                'current_page' => $users->currentPage(),
+                'last_page' => $users->lastPage(),
+                'per_page' => $users->perPage(),
+                'total_items' => $users->total(),
+            ] : null,
+            'users' => $request->has('paginate') && $request->paginate ? $users->values() : $users
         ]);
     }
 }

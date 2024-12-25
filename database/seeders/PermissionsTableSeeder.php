@@ -37,12 +37,20 @@ class PermissionsTableSeeder extends Seeder
             'عرض التسليمات',
             'متابعة الموظفين',
             'عرض تكليفاتي',
+            'ادارة الموظفين'
         ];
 
         foreach ($permissions as $permission) {
             Permission::updateOrCreate(
-                ['name' => $permission, 'guard_name' => 'web'],[] 
+                ['name' => $permission, 'guard_name' => 'web'],[]
             );
-        }  
+        }
+
+        // $adminRole = Role::create(['name' => 'admin']);
+        // $userRole = Role::create(['name' => 'user']);
+
+        // $adminRole->givePermissionTo($permissions);
+
+        // $userRole->givePermissionTo(['create task', 'view reports']);
     }
 }

@@ -2,16 +2,19 @@
 
 use App\Http\Controllers\ApiControllers\auth_controllers\LoginController;
 use App\Http\Controllers\ApiControllers\auth_controllers\LogoutController;
-use App\Http\Controllers\ApiControllers\auth_controllers\SignupController;
 use App\Http\Controllers\ApiControllers\comment_controllers\CommentController;
+use App\Http\Controllers\ApiControllers\department_controllers\DepartmentControllers;
 use App\Http\Controllers\ApiControllers\fcm_controllers\FcmController;
 use App\Http\Controllers\ApiControllers\fcm_controllers\NotificationController;
 use App\Http\Controllers\ApiControllers\manager_employees_controllers\ManagerEmployeeController;
+use App\Http\Controllers\ApiControllers\permissions_roles_controllers\PermissionController;
+use App\Http\Controllers\ApiControllers\permissions_roles_controllers\RoleController;
 use App\Http\Controllers\ApiControllers\task_category_controllers\TaskCategoryController;
 use App\Http\Controllers\ApiControllers\task_controllers\TaskAssignmentController;
 use App\Http\Controllers\ApiControllers\task_controllers\TaskController;
 use App\Http\Controllers\ApiControllers\task_submission_controllers\TaskSubmissionController;
 use App\Http\Controllers\ApiControllers\user_controllers\userController;
+use App\Http\Controllers\ApiControllers\user_controllers\UsersManagementController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -27,10 +30,6 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::post('/login', [LoginController::class, 'userLogin']);
-Route::post('register', [SignupController::class, 'signUp']);
-
-Route::get('users', [userController::class, 'getAllUsers']);
-
 
 // FCM
 Route::post('/storeFcmUserToken', [FcmController::class, 'storeFcmUserToken']);
@@ -65,15 +64,26 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('users/employees/with-task-assignees', [ManagerEmployeeController::class, 'getManagerEmployeesWithTaskAssignees']);
     Route::get('users/managers', [ManagerEmployeeController::class, 'getManagers']);
     Route::post('users/employees/add-edit', [ManagerEmployeeController::class, 'addEditManagerEmployees']);
+    Route::post('users/managers/assign', [ManagerEmployeeController::class, 'assignEmployeeForManagers']);
     Route::post('users/managers/delete', [ManagerEmployeeController::class, 'deleteManager']);
+    Route::get('users/{user_id}/managers-and-employees', [ManagerEmployeeController::class, 'getManagersAndEmployeesOfUser']);
+
+
+    // user
+    Route::get('users', [userController::class, 'getAllUsers']);
+    Route::get('users/{id}', [userController::class, 'getUserById']);
+    Route::post('users', [UsersManagementController::class, 'addUser']);
+    Route::post('users/{id}', [UsersManagementController::class, 'updateUser']);
 
     // user profile
     Route::get('users/profile/{user_id}', [userController::class, 'getUserProfileById']);
     Route::post('users/profile/image', [userController::class, 'updateProfileImage']);
-    Route::get('users/{id}', [userController::class, 'getUserById']);
 
     // task categories
     Route::get('task-categories', [TaskCategoryController::class, 'getTaskCategories']);
+
+    // departments
+    Route::get('departments', [DepartmentControllers::class, 'getDepartments']);
 
     // comments
     Route::post('comments', [CommentController::class, 'addTaskSubmissionComment']);
@@ -85,6 +95,37 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('notifications/unread-count', [NotificationController::class, 'unreadNotificationsCount']);
     Route::get('notifications/read/{notification_id}', [NotificationController::class, 'readNotification']);
     Route::get('notifications/read-all', [NotificationController::class, 'readAll']);
+
+
+    // Route::middleware(['role:admin'])->group(function () {
+        // Admin-only routes
+
+        Route::prefix('roles')->group(function () {
+            Route::get('/', [RoleController::class, 'index']);
+            Route::post('/', [RoleController::class, 'store']);
+            Route::get('{id}', [RoleController::class, 'show']);
+            Route::put('{id}', [RoleController::class, 'update']);
+            Route::delete('{id}', [RoleController::class, 'destroy']);
+            Route::post('{id}/permissions', [RoleController::class, 'assignPermissions']);
+        });
+
+        Route::prefix('permissions')->group(function () {
+            Route::get('/', [PermissionController::class, 'index']);
+            Route::post('/', [PermissionController::class, 'store']);
+            Route::get('{id}', [PermissionController::class, 'show']);
+            Route::put('{id}', [PermissionController::class, 'update']);
+            Route::delete('{id}', [PermissionController::class, 'destroy']);
+        });
+
+        Route::prefix('users')->group(function () {
+            Route::get('{id}/roles-permissions', [UserController::class, 'getRolesPermissions']);
+            Route::post('{id}/roles', [UserController::class, 'assignRoles']);
+            Route::post('{id}/permissions', [UserController::class, 'assignPermissions']);
+            Route::post('{id}/remove-role', [UserController::class, 'removeRole']);
+            Route::post('{id}/remove-permission', [UserController::class, 'removePermission']);
+        });
+    // });
+
 
     Route::group(['prefix' => 'users'], function () {
         Route::group(['prefix' => 'roles'], function () {
