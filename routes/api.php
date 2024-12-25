@@ -7,6 +7,8 @@ use App\Http\Controllers\ApiControllers\department_controllers\DepartmentControl
 use App\Http\Controllers\ApiControllers\fcm_controllers\FcmController;
 use App\Http\Controllers\ApiControllers\fcm_controllers\NotificationController;
 use App\Http\Controllers\ApiControllers\manager_employees_controllers\ManagerEmployeeController;
+use App\Http\Controllers\ApiControllers\permissions_roles_controllers\PermissionController;
+use App\Http\Controllers\ApiControllers\permissions_roles_controllers\RoleController;
 use App\Http\Controllers\ApiControllers\task_category_controllers\TaskCategoryController;
 use App\Http\Controllers\ApiControllers\task_controllers\TaskAssignmentController;
 use App\Http\Controllers\ApiControllers\task_controllers\TaskController;
@@ -93,6 +95,37 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('notifications/unread-count', [NotificationController::class, 'unreadNotificationsCount']);
     Route::get('notifications/read/{notification_id}', [NotificationController::class, 'readNotification']);
     Route::get('notifications/read-all', [NotificationController::class, 'readAll']);
+
+
+    // Route::middleware(['role:admin'])->group(function () {
+        // Admin-only routes
+
+        Route::prefix('roles')->group(function () {
+            Route::get('/', [RoleController::class, 'index']);
+            Route::post('/', [RoleController::class, 'store']);
+            Route::get('{id}', [RoleController::class, 'show']);
+            Route::put('{id}', [RoleController::class, 'update']);
+            Route::delete('{id}', [RoleController::class, 'destroy']);
+            Route::post('{id}/permissions', [RoleController::class, 'assignPermissions']);
+        });
+
+        Route::prefix('permissions')->group(function () {
+            Route::get('/', [PermissionController::class, 'index']);
+            Route::post('/', [PermissionController::class, 'store']);
+            Route::get('{id}', [PermissionController::class, 'show']);
+            Route::put('{id}', [PermissionController::class, 'update']);
+            Route::delete('{id}', [PermissionController::class, 'destroy']);
+        });
+
+        Route::prefix('users')->group(function () {
+            Route::get('{id}/roles-permissions', [UserController::class, 'getRolesPermissions']);
+            Route::post('{id}/roles', [UserController::class, 'assignRoles']);
+            Route::post('{id}/permissions', [UserController::class, 'assignPermissions']);
+            Route::post('{id}/remove-role', [UserController::class, 'removeRole']);
+            Route::post('{id}/remove-permission', [UserController::class, 'removePermission']);
+        });
+    // });
+
 
     Route::group(['prefix' => 'users'], function () {
         Route::group(['prefix' => 'roles'], function () {
