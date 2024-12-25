@@ -7,7 +7,7 @@ use App\Http\Controllers\ApiControllers\department_controllers\DepartmentControl
 use App\Http\Controllers\ApiControllers\fcm_controllers\FcmController;
 use App\Http\Controllers\ApiControllers\fcm_controllers\NotificationController;
 use App\Http\Controllers\ApiControllers\manager_employees_controllers\ManagerEmployeeController;
-use App\Http\Controllers\ApiControllers\permissions_roles_controllers\PermissionController;
+use App\Http\Controllers\ApiControllers\permissions_roles_controllers\MobilePermissionController;
 use App\Http\Controllers\ApiControllers\permissions_roles_controllers\RoleController;
 use App\Http\Controllers\ApiControllers\task_category_controllers\TaskCategoryController;
 use App\Http\Controllers\ApiControllers\task_controllers\TaskAssignmentController;
@@ -103,18 +103,17 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::prefix('roles')->group(function () {
             Route::get('/', [RoleController::class, 'index']);
             Route::post('/', [RoleController::class, 'store']);
-            Route::get('{id}', [RoleController::class, 'show']);
             Route::put('{id}', [RoleController::class, 'update']);
             Route::delete('{id}', [RoleController::class, 'destroy']);
             Route::post('{id}/permissions', [RoleController::class, 'assignPermissions']);
         });
 
         Route::prefix('permissions')->group(function () {
-            Route::get('/', [PermissionController::class, 'index']);
-            Route::post('/', [PermissionController::class, 'store']);
-            Route::get('{id}', [PermissionController::class, 'show']);
-            Route::put('{id}', [PermissionController::class, 'update']);
-            Route::delete('{id}', [PermissionController::class, 'destroy']);
+            Route::get('/', [MobilePermissionController::class, 'index']);
+            Route::post('/', [MobilePermissionController::class, 'store']);
+            Route::get('{id}', [MobilePermissionController::class, 'show']);
+            Route::put('{id}', [MobilePermissionController::class, 'update']);
+            Route::delete('{id}', [MobilePermissionController::class, 'destroy']);
         });
 
         Route::prefix('users')->group(function () {

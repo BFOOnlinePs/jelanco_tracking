@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
+/// was UserController
 class UserRoleAndPermissionController extends Controller
 {
     // Get all roles and permissions for a user

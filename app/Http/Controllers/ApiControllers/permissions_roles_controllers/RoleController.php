@@ -15,9 +15,10 @@ class RoleController extends Controller
         return response()->json(Role::all());
     }
 
-    // Create a new role or update an existing role by name
+    // Create a new role
     public function store(Request $request)
     {
+        // edit the validator and make it only create
         $request->validate(['name' => 'required']);
         $role = Role::updateOrCreate(
             ['name' => $request->name], // Match on name
@@ -27,22 +28,15 @@ class RoleController extends Controller
         return response()->json($role, 201);
     }
 
-    // // Show a specific role
-    // public function show($id)
-    // {
-    //     $role = Role::findOrFail($id);
-    //     return response()->json($role);
-    // }
+    // Update a role
+    public function update(Request $request, $id)
+    {
+        $role = Role::findOrFail($id);
+        $request->validate(['name' => 'required|unique:roles,name,' . $id]);
+        $role->update(['name' => $request->name]);
 
-    // // Update a role
-    // public function update(Request $request, $id)
-    // {
-    //     $role = Role::findOrFail($id);
-    //     $request->validate(['name' => 'required|unique:roles,name,' . $id]);
-    //     $role->update(['name' => $request->name, 'guard_name' => 'web']);
-
-    //     return response()->json($role);
-    // }
+        return response()->json($role);
+    }
 
     // // Delete a role
     // public function destroy($id)
