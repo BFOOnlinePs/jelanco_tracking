@@ -15,6 +15,14 @@ class RoleController extends Controller
         return response()->json(Role::all());
     }
 
+    public function getAllRolesWithPermissions()
+    {
+        $roles = Role::with('permissions')->get();
+
+        return response()->json(['roles' => $roles]);
+    }
+
+
     // Create a new role
     public function store(Request $request)
     {
@@ -47,13 +55,25 @@ class RoleController extends Controller
     //     return response()->json(['message' => 'تم حذف الدور بنجاح']);
     // }
 
-    // Assign permissions to a role (send all the selected with the old one)
+
+    // Assign permissions to a role (send all the selected with the old permissions)
     public function assignPermissions(Request $request, $id)
     {
-        $role = Role::findOrFail($id);
-        $permissions = Permission::whereIn('name', $request->permissions)->get();
+        $role = Role::find($id);
+
+        if (!$role) {
+            return response()->json([
+                'status' => false,
+                'message' => 'الدور غير موجود'
+            ]);
+        }
+
+        $permissions = Permission::whereIn('id', $request->permissionIds)->get();
         $role->syncPermissions($permissions);
 
-        return response()->json(['message' => 'تم تعيين صلاحيات الدور بنجاح']);
+        return response()->json([
+            'status' => true,
+            'message' => 'تم تعيين صلاحيات الدور بنجاح'
+        ]);
     }
 }

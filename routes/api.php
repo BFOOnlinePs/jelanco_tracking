@@ -98,31 +98,32 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
 
     // Route::middleware(['role:admin'])->group(function () {
-        // Admin-only routes
+    // Admin-only routes
 
-        Route::prefix('roles')->group(function () {
-            Route::get('/', [RoleController::class, 'index']);
-            Route::post('/', [RoleController::class, 'store']);
-            Route::put('{id}', [RoleController::class, 'update']);
-            Route::delete('{id}', [RoleController::class, 'destroy']);
-            Route::post('{id}/permissions', [RoleController::class, 'assignPermissions']);
-        });
+    Route::prefix('roles')->group(function () {
+        Route::get('/', [RoleController::class, 'index']);
+        Route::post('/', [RoleController::class, 'store']);
+        Route::put('{id}', [RoleController::class, 'update']);
+        Route::delete('{id}', [RoleController::class, 'destroy']);
+        Route::post('{id}/permissions', [RoleController::class, 'assignPermissions']);
+        Route::get('/roles-with-permissions', [RoleController::class, 'getAllRolesWithPermissions']);
+    });
 
-        Route::prefix('permissions')->group(function () {
-            Route::get('/', [MobilePermissionController::class, 'index']);
-            Route::post('/', [MobilePermissionController::class, 'store']);
-            Route::get('{id}', [MobilePermissionController::class, 'show']);
-            Route::put('{id}', [MobilePermissionController::class, 'update']);
-            Route::delete('{id}', [MobilePermissionController::class, 'destroy']);
-        });
+    Route::prefix('permissions')->group(function () {
+        Route::get('/', [MobilePermissionController::class, 'index']);
+        Route::post('/', [MobilePermissionController::class, 'store']);
+        Route::get('{id}', [MobilePermissionController::class, 'show']);
+        Route::put('{id}', [MobilePermissionController::class, 'update']);
+        Route::delete('{id}', [MobilePermissionController::class, 'destroy']);
+    });
 
-        Route::prefix('users')->group(function () {
-            Route::get('{id}/roles-permissions', [UserController::class, 'getRolesPermissions']);
-            Route::post('{id}/roles', [UserController::class, 'assignRoles']);
-            Route::post('{id}/permissions', [UserController::class, 'assignPermissions']);
-            Route::post('{id}/remove-role', [UserController::class, 'removeRole']);
-            Route::post('{id}/remove-permission', [UserController::class, 'removePermission']);
-        });
+    Route::prefix('users')->group(function () {
+        Route::get('{id}/roles-permissions', [UserController::class, 'getRolesPermissions']);
+        Route::post('{id}/roles', [UserController::class, 'assignRoles']);
+        Route::post('{id}/permissions', [UserController::class, 'assignPermissions']);
+        Route::post('{id}/remove-role', [UserController::class, 'removeRole']);
+        Route::post('{id}/remove-permission', [UserController::class, 'removePermission']);
+    });
     // });
 
 

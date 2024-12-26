@@ -53,11 +53,39 @@ class MobilePermissionController extends Controller
     // Update a permission
     public function update(Request $request, $id)
     {
-        $permission = Permission::findOrFail($id);
-        $request->validate(['name' => 'required|unique:permissions,name,' . $id]);
-        $permission->update(['name' => $request->name]);
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|unique:permissions,name,' . $id
+        ], [
+            'name.unique' => 'الصلاحية :input موجودة مسبقا',
+            'name.required' => 'الرجاء كتابة الاسم'
+        ]);
 
-        return response()->json($permission);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(),
+            ]);
+        }
+
+        $permission = Permission::find($id);
+
+        if (!$permission) {
+            return response()->json([
+                'status' => false,
+                'message' => 'الصلاحية غير موجودة',
+            ], 404);
+        }
+
+
+        $permission->update([
+            'name' => $request->name
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'تم تحديث الصلاحية بنجاح',
+            'permission' => $permission
+        ]);
     }
 
     // Delete a permission
