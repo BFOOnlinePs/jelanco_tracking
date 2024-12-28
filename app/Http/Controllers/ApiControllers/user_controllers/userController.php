@@ -132,11 +132,17 @@ class userController extends Controller
                 ->when(request('search'), function ($query, $search) {
                     return $query->where('name', 'LIKE', "%{$search}%");
                 })
+                ->when($request->is_role, function ($query) {
+                    return $query->with('roles');
+                })
                 ->orderBy('updated_at', 'desc')
                 ->paginate(10);
         } else {
             // Return all users
-            $users = User::select('id', 'name', 'image', 'job_title')->get();
+            $users = User::select('id', 'name', 'image', 'job_title')
+                ->when($request->is_role, function ($query) {
+                    return $query->with('roles');
+                })->get();
         }
 
         return response()->json([

@@ -10,10 +10,31 @@ use Spatie\Permission\Models\Role;
 class RoleController extends Controller
 {
     // Get all roles
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Role::all());
+        if ($request->has('with_permissions') && $request->with_permissions) {
+            // Get roles with their permissions, ordered by id
+            $roles = Role::with('permissions')->orderBy('id')->get()->map(function ($role) {
+                return [
+                    'id' => $role->id,
+                    'name' => $role->name,
+                    'permissions' => $role->permissions->map(function ($permission) {
+                        return [
+                            'id' => $permission->id,
+                            'name' => $permission->name,
+                        ];
+                    }),
+                ];
+            });
+        } else {
+            // Get roles without permissions, ordered by id
+            $roles = Role::orderBy('id')->get(['id', 'name']);
+        }
+
+        return response()->json($roles);
     }
+
+
 
     public function getAllRolesWithPermissions()
     {
@@ -73,7 +94,7 @@ class RoleController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'تم تعيين صلاحيات الدور بنجاح'
+            'message' => 'تم تحديث صلاحيات الدور بنجاح'
         ]);
     }
 }

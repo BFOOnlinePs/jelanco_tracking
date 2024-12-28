@@ -21,6 +21,52 @@ class UserRoleAndPermissionController extends Controller
         ]);
     }
 
+    public function getRolesAndPermissions($id)
+    {
+        $user = User::findOrFail($id);
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        // // Get all user roles with their permissions
+        // $rolesWithPermissions = $user->roles->map(function ($role) {
+        //     return [
+        //         'role' => $role->id,
+        //         'role_permission_ids' => $role->permissions->pluck('id'),
+        //     ];
+        // });
+
+        // // Get additional permissions assigned directly to the user
+        // $directPermissions = $user->permissions->pluck('id')->diff(
+        //     $rolesWithPermissions->pluck('permissions')->flatten()
+        // );
+
+        // return response()->json([
+        //     'role_with_permission_ids' => $rolesWithPermissions,
+        //     'direct_permission_ids' => $directPermissions,
+        // ]);
+
+        // Get role IDs
+        $roleIds = $user->roles->pluck('id');
+
+        // Get all permissions assigned to roles
+        $rolesPermissions = $user->roles->flatMap(function ($role) {
+            return $role->permissions->pluck('id');
+        })->unique();
+
+        // Get additional permissions assigned directly to the user
+        $directPermissions = $user->permissions->pluck('id')->diff($rolesPermissions);
+
+        return response()->json([
+            'role_ids' => $roleIds,
+            'direct_permission_ids' => $directPermissions,
+        ]);
+    }
+
+
     // Assign roles to a user
     public function assignRoles(Request $request, $id)
     {

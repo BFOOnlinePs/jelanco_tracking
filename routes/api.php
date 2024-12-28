@@ -9,6 +9,7 @@ use App\Http\Controllers\ApiControllers\fcm_controllers\NotificationController;
 use App\Http\Controllers\ApiControllers\manager_employees_controllers\ManagerEmployeeController;
 use App\Http\Controllers\ApiControllers\permissions_roles_controllers\MobilePermissionController;
 use App\Http\Controllers\ApiControllers\permissions_roles_controllers\RoleController;
+use App\Http\Controllers\ApiControllers\permissions_roles_controllers\UserRoleAndPermissionController;
 use App\Http\Controllers\ApiControllers\task_category_controllers\TaskCategoryController;
 use App\Http\Controllers\ApiControllers\task_controllers\TaskAssignmentController;
 use App\Http\Controllers\ApiControllers\task_controllers\TaskController;
@@ -118,11 +119,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     });
 
     Route::prefix('users')->group(function () {
-        Route::get('{id}/roles-permissions', [UserController::class, 'getRolesPermissions']);
-        Route::post('{id}/roles', [UserController::class, 'assignRoles']);
-        Route::post('{id}/permissions', [UserController::class, 'assignPermissions']);
-        Route::post('{id}/remove-role', [UserController::class, 'removeRole']);
-        Route::post('{id}/remove-permission', [UserController::class, 'removePermission']);
+        // Route::get('{id}/roles-permissions', [UserRoleAndPermissionController::class, 'getRolesPermissions']);
+        Route::get('{id}/roles-and-permissions', [UserRoleAndPermissionController::class, 'getRolesAndPermissions']);
+        Route::post('{id}/roles', [UserRoleAndPermissionController::class, 'assignRoles']);
+        Route::post('{id}/permissions', [UserRoleAndPermissionController::class, 'assignPermissions']);
+        Route::post('{id}/remove-role', [UserRoleAndPermissionController::class, 'removeRole']);
+        Route::post('{id}/remove-permission', [UserRoleAndPermissionController::class, 'removePermission']);
     });
     // });
 
