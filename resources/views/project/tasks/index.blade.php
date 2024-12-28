@@ -34,13 +34,13 @@
                     <div class="row">
                         <div class="col">
                             <div class="form-group">
-                                <label for="">اسم المهمة</label>
+                                <label for="">اسم التكليف</label>
                                 <input type="text" id="task_name" onkeyup="list_tasks_ajax()" placeholder="اسم المهمة" class="form-control">
                             </div>
                         </div>
                         <div class="col">
                             <div class="form-group">
-                                <label for="">حالة المهمة</label>
+                                <label for="">حالة التكليف</label>
                                 <select onchange="list_tasks_ajax()" class="form-control" name="" id="task_status">
                                     <option value="">جميع الحالات</option>
                                     <option value="active">مفعلة</option>
@@ -50,7 +50,7 @@
                         </div>
                         <div class="col">
                             <div class="form-group">
-                                <label for="">الموظفين</label>
+                                <label for="">الموظفين المكلفين</label>
                                 <select onchange="list_tasks_ajax()" class="form-control select2bs4" name="" id="assigned_to">
                                     <option value="">جميع الموظفين</option>
                                     @foreach($users as $key)
