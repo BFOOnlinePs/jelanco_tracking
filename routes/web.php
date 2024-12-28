@@ -24,7 +24,7 @@ Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
-Route::group(['middleware' => 'auth'], function () {
+Route::group(['middleware' => ['auth','check_user']], function () {
     Route::group(['prefix' => 'users'], function () {
         Route::get('/index', [App\Http\Controllers\UsersController::class , 'index'])->name('users.index');
         Route::post('/list_users_ajax', [App\Http\Controllers\UsersController::class , 'list_users_ajax'])->name('users.list_users_ajax');
@@ -32,6 +32,7 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('/create', [App\Http\Controllers\UsersController::class , 'create'])->name('users.create');
         Route::get('/edit/{id}', [App\Http\Controllers\UsersController::class , 'edit'])->name('users.edit');
         Route::post('/update', [App\Http\Controllers\UsersController::class , 'update'])->name('users.update');
+        Route::get('/update_user_status/{id}', [App\Http\Controllers\UsersController::class , 'update_user_status'])->name('users.update_user_status');
     });
     Route::group(['prefix' => 'permissions'], function () {
         Route::get('/index', [App\Http\Controllers\PermissionController::class , 'index'])->name('permissions.index');
@@ -62,7 +63,6 @@ Route::group(['middleware' => 'auth'], function () {
             });
         });
     });
-    Route::post('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
     Route::post('/api_get', function (Request $request) {
         $user_ip = $request->ip();
 
@@ -79,6 +79,7 @@ Route::group(['middleware' => 'auth'], function () {
         return Artisan::call('storage:link');
     });
 });
+Route::post('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->middleware('auth')->name('logout');
 
 Route::get('privacy_policy', function(){
     return view('privacy_policy');

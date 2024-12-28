@@ -31,6 +31,28 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="name">اسم المستخدم</label>
+                                <input type="text" class="form-control" name="name" id="name" placeholder="اسم المستخدم">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="name">الايميل</label>
+                                <input type="text" class="form-control" name="name" id="name" placeholder="الايميل">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
                     <div class="table-responsive" id="list_users_table"></div>
                 </div>
             </div>

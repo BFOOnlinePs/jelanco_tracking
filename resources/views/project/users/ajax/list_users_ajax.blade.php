@@ -24,6 +24,11 @@
                         <td>
                             <a href="{{ route('users.edit', ['id' => $key->id]) }}" class="btn btn-sm btn-success"><span
                                     class="fa fa-edit"></span></a>
+                            @if ($key->user_status == 'active')
+                                <a href="{{ route('users.update_user_status',['id'=>$key->id]) }}" class="btn btn-danger btn-sm"><span class="fa fa-lock"></span></a>
+                            @elseif ($key->user_status == 'not_active')
+                                <a href="{{ route('users.update_user_status',['id'=>$key->id]) }}" class="btn btn-success btn-sm"><span class="fa fa-unlock"></span></a>
+                            @endif
                         </td>
                     @endcan
                 </tr>

@@ -81,4 +81,11 @@ class UsersController extends Controller
             return redirect()->route('users.index')->with(['fail' => 'هناك خلل ما في تعديل المستخدم']);
         }
     }
+
+    public function update_user_status($id){
+        $data = User::where('id',$id)->first();
+        $data->user_status = $data->user_status == 'active' ? 'not_active' : 'active';
+        $data->save();
+        return redirect()->route('users.index')->with(['success' => 'تم تعديل حالة المستخدم بنجاح']);
+    }
 }
