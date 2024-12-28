@@ -1,15 +1,15 @@
 @extends('layouts.app')
 @section('title')
-    قائمة المهام
+    قائمة التكليفات
 @endsection
 @section('header')
-    قائمة المهام
+    قائمة التكليفات
 @endsection
 @section('header_title_link')
     الرئيسية
 @endsection
 @section('header_title')
-    قائمة المهام
+    قائمة التكليفات
 @endsection
 @section('content')
     <div class="row">
@@ -22,7 +22,7 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-body">
-                    <a href="{{ route('tasks.add') }}" class="btn btn-dark">اضافة مهمة</a>
+                    <a href="{{ route('tasks.add') }}" class="btn btn-dark">اضافة تكليف</a>
                 </div>
             </div>
         </div>
@@ -335,7 +335,7 @@
                 data: formData,
                 success: function(response) {
                     console.log(response);
-                    
+
                     // Check if response.data is defined and has necessary properties
                     if (response.data && response.data.created_at && response.data.tsc_content && response.client && response.client.name) {
                         const createdAt = new Date(response.data.created_at);
