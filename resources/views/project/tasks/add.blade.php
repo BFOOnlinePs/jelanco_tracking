@@ -1,15 +1,15 @@
 @extends('layouts.app')
 @section('title')
-    اضافة مهمة
+    اضافة تكليف
 @endsection
 @section('header')
-    اضافة مهمة
+    اضافة تكليف
 @endsection
 @section('header_title_link')
     الرئيسية
 @endsection
 @section('header_title')
-    اضافة مهمة
+    اضافة تكليف
 @endsection
 @section('style')
     <link rel="stylesheet" href="{{ asset('assets/plugins/select2/css/select2.min.css') }}">
@@ -23,40 +23,11 @@
                     <form action="{{ route('tasks.create') }}" method="post">
                         @csrf
                         <div class="row">
-                            <div class="col-md-8">
+                            <div class="col-md-12">
                                 <div class="row">
                                     <div class="col-md-12">
                                         <div class="form-group">
-                                            <label for="">اسم المهمة</label>
-                                            <input required type="text" name="t_content" class="form-control" placeholder="اسم المهمة">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="">بداية المهمة</label>
-                                            <input required type="datetime-local" name="t_planed_start_time" class="form-control" placeholder="بداية المهمة">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="">نهاية المهمة</label>
-                                            <input required type="datetime-local" name="t_planed_end_time" class="form-control" placeholder="نهاية المهمة">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <div class="form-group">
-                                            <label for="">الفئة</label>
-                                            <select class="form-control" required name="t_category_id" id="">
-                                                <option value="">اختر الفئة ...</option>
-                                                @foreach($task_category as $key)
-                                                    <option value="{{ $key->c_id }}">{{ $key->c_name }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <div class="form-group">
-                                            <label for="">الموظفين</label>
+                                            <label for="">الموظفين المكلفين</label>
                                             <select required class="form-control select2bs4" name="clients[]" multiple="multiple">
                                                 @foreach($clients as $key)
                                                     <option value="{{ $key->id }}">{{ $key->name }}</option>
@@ -65,13 +36,43 @@
                                         </div>
                                     </div>
                                     <div class="col-md-12">
-                                        <button class="btn btn-success">اضافة</button>
+                                        <div class="form-group">
+                                            <label for="">محتوى التكليف</label>
+                                            <textarea name="t_content" id="" cols="30" placeholder="ادخل محتوى التكليف" class="form-control" rows="3"></textarea>
+                                            {{-- <input required type="text" name="t_content" class="form-control" placeholder="ادخل محتوى التكليف"> --}}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="">موعد البدء</label>
+                                            <input required type="datetime-local" name="t_planed_start_time" class="form-control" placeholder="بداية المهمة">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="">موعد الانتهاء</label>
+                                            <input required type="datetime-local" name="t_planed_end_time" class="form-control" placeholder="نهاية المهمة">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label for="">التصنيف</label>
+                                            <select class="form-control" required name="t_category_id" id="">
+                                                <option value="">اختر التصنيف ...</option>
+                                                @foreach($task_category as $key)
+                                                    <option value="{{ $key->c_id }}">{{ $key->c_name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <button class="btn btn-success">اضافة تكليف</button>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4 text-center justify-content-center align-content-center">
+                            {{-- <div class="col-md-4 text-center justify-content-center align-content-center">
                                 <span style="font-size: 150px" class="fa fa-tasks"></span>
-                            </div>
+                            </div> --}}
                         </div>
                     </form>
                 </div>
