@@ -5,6 +5,7 @@ namespace App\Http\Controllers\ApiControllers\permissions_roles_controllers;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -58,7 +59,10 @@ class UserRoleAndPermissionController extends Controller
         })->unique();
 
         // Get additional permissions assigned directly to the user
-        $directPermissions = $user->permissions->pluck('id')->diff($rolesPermissions);
+        $directPermissions = $user->permissions->pluck('id')
+            // ->diff($rolesPermissions)
+            ->values()->toArray();
+
 
         return response()->json([
             'role_ids' => $roleIds,
@@ -70,21 +74,68 @@ class UserRoleAndPermissionController extends Controller
     // Assign roles to a user
     public function assignRoles(Request $request, $id)
     {
+        $validator = Validator::make($request->all(), [
+            'role_ids' => 'required|array',
+            'role_ids.*' => 'int|exists:roles,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(),
+            ]);
+        }
+
         $user = User::findOrFail($id);
-        $roles = Role::whereIn('name', $request->roles)->get();
+
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+
+
+        $roles = Role::whereIn('id', $request->role_ids)->get();
         $user->syncRoles($roles);
 
-        return response()->json(['message' => 'Roles assigned successfully']);
+        return response()->json([
+            'status' => true,
+            'message' => 'تم تعيين الأدوار بنجاح'
+        ]);
     }
 
     // Assign permissions to a user
     public function assignPermissions(Request $request, $id)
     {
+        $validator = Validator::make($request->all(), [
+            'permission_ids' => 'required|array',
+            'permission_ids.*' => 'int|exists:permissions,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(),
+            ]);
+        }
+
         $user = User::findOrFail($id);
-        $permissions = Permission::whereIn('name', $request->permissions)->get();
+
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        $permissions = Permission::whereIn('id', $request->permission_ids)->get();
         $user->syncPermissions($permissions);
 
-        return response()->json(['message' => 'Permissions assigned successfully']);
+        return response()->json([
+            'status' => true,
+            'message' => 'تم تعيين الصلاحيات بنجاح'
+        ]);
     }
 
     // Remove a specific role from a user

@@ -123,8 +123,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('{id}/roles-and-permissions', [UserRoleAndPermissionController::class, 'getRolesAndPermissions']);
         Route::post('{id}/roles', [UserRoleAndPermissionController::class, 'assignRoles']);
         Route::post('{id}/permissions', [UserRoleAndPermissionController::class, 'assignPermissions']);
-        Route::post('{id}/remove-role', [UserRoleAndPermissionController::class, 'removeRole']);
-        Route::post('{id}/remove-permission', [UserRoleAndPermissionController::class, 'removePermission']);
+        // Route::post('{id}/remove-role', [UserRoleAndPermissionController::class, 'removeRole']);
+        // Route::post('{id}/remove-permission', [UserRoleAndPermissionController::class, 'removePermission']);
     });
     // });
 
