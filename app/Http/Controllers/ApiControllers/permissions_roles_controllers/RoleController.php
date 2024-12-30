@@ -4,6 +4,7 @@ namespace App\Http\Controllers\ApiControllers\permissions_roles_controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -47,25 +48,69 @@ class RoleController extends Controller
     // Create a new role
     public function store(Request $request)
     {
-        // edit the validator and make it only create
-        $request->validate(['name' => 'required']);
-        $role = Role::updateOrCreate(
-            ['name' => $request->name], // Match on name
-            ['guard_name' => 'web']
-        );
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|unique:roles,name',
+        ], [
+            'name.unique' => 'الدور :input موجود مسبقا',
+        ]);
 
-        return response()->json($role, 201);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(),
+            ]);
+        }
+
+        $role = Role::create([
+            'name' => $request->name,
+            'guard_name' => 'web'
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'تم إضافة الدور بنجاح',
+            'role' => $role
+        ], 201);
     }
+
 
     // Update a role
     public function update(Request $request, $id)
     {
-        $role = Role::findOrFail($id);
-        $request->validate(['name' => 'required|unique:roles,name,' . $id]);
-        $role->update(['name' => $request->name]);
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|unique:roles,name,' . $id
+        ], [
+            'name.unique' => 'الدور :input موجود مسبقا',
+            'name.required' => 'الرجاء كتابة الاسم'
+        ]);
 
-        return response()->json($role);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(),
+            ]);
+        }
+
+        $role = Role::find($id);
+
+        if (!$role) {
+            return response()->json([
+                'status' => false,
+                'message' => 'الدور غير موجود',
+            ], 404);
+        }
+
+        $role->update([
+            'name' => $request->name
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'تم تحديث الدور بنجاح',
+            'role' => $role
+        ]);
     }
+
 
     // // Delete a role
     // public function destroy($id)
