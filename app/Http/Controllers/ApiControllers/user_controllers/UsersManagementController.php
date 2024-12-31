@@ -58,6 +58,8 @@ class UsersManagementController extends Controller
         }
     }
 
+
+    /// todo: send the user_status
     public function updateUser(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [

@@ -33,14 +33,12 @@ class LoginController extends Controller
 
         // Determine if input is email or phone number
         if (filter_var($emailOrPhone, FILTER_VALIDATE_EMAIL)) {
-            // Input is an email
             $credentials = ['email' => $emailOrPhone, 'password' => $password];
         } else {
-            // Assume input is a phone number
             $credentials = ['phone_number' => $emailOrPhone, 'password' => $password];
         }
 
-        if (Auth::attempt($credentials)) {
+        if (Auth::attempt($credentials) && Auth::user()->user_status == 'active') {
             $token = $request->user()->createToken('api-token')->plainTextToken;
             $user = User::find(auth()->user()->id);
             // $role = $user->getRoleNames()->first();

@@ -41,6 +41,7 @@ class User extends Authenticatable
         'job_title',
         'departments',
         'phone_number',
+        'user_status'
     ];
 
     /**

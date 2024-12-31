@@ -36,13 +36,13 @@ class PermissionsTableSeeder extends Seeder
             'تعديل تسليم تكليف',
             'عرض التسليمات',
             'متابعة الموظفين',
-            'عرض تكليفاتي',
-            'ادارة الموظفين'
+            'عرض تكليفاتي'
         ];
 
         foreach ($permissions as $permission) {
             Permission::updateOrCreate(
-                ['name' => $permission, 'guard_name' => 'web'],[]
+                ['name' => $permission, 'guard_name' => 'web'],
+                []
             );
         }
 
