@@ -106,20 +106,35 @@ class RoleController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'تم تحديث الدور بنجاح',
+            'message' => 'تم تعديل الدور بنجاح',
             'role' => $role
         ]);
     }
 
 
-    // // Delete a role
-    // public function destroy($id)
-    // {
-    //     $role = Role::findOrFail($id);
-    //     $role->delete();
+    public function destroy($id)
+    {
+        $role = Role::findOrFail($id);
 
-    //     return response()->json(['message' => 'تم حذف الدور بنجاح']);
-    // }
+        if (!$role) {
+            return response()->json([
+                'status' => false,
+                'message' => 'الدور غير موجود',
+            ], 404);
+        }
+
+        if ($role->delete()) {
+            return response()->json([
+                'status' => true,
+                'message' => 'تم حذف الدور بنجاح'
+            ]);
+        }
+
+        return response()->json([
+            'status' => false,
+            'message' => 'حدث خطأ أثناء حذف الدور',
+        ]);
+    }
 
 
     // Assign permissions to a role (send all the selected with the old permissions)
