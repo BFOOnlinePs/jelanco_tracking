@@ -111,6 +111,42 @@ class userController extends Controller
         ]);
     }
 
+    public function changePassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            // 'user_id' => 'required|exists:users,id',
+            'password' => 'required',
+        ], [
+            // 'user_id.required' => 'الرجاء كتابة رقم المستخدم',
+            // 'user_id.exists' => 'الرجاء كتابة رقم المستخدم بشكل صحيح',
+            'password.required' => 'الرجاء كتابة كلمة المرور',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(),
+            ]);
+        }
+
+        $user_id = Auth::user()->id;
+        $user = User::where('id', $user_id)->first();
+        if($user) {
+            $user->password = bcrypt($request->password);
+            if ($user->save()) {
+                return response()->json([
+                    'status' => true,
+                    'message' => 'تم تغيير كلمة المرور بنجاح',
+                ]);
+            }
+        }
+
+        return response()->json([
+            'status' => false,
+            'message' => 'حدث خطأ أثناء تغيير كلمة المرور',
+        ]);
+    }
+
     public function getUserById($id)
     {
         $user = User::find($id);

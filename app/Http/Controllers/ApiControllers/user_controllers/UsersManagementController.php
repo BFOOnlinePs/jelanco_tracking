@@ -17,13 +17,16 @@ class UsersManagementController extends Controller
             'password' => 'required',
             'name' => 'required',
             'departments' => 'nullable|json',
+            'status' => 'required|in:active,not_active'
         ], [
             'email.unique' => 'البريد الإلكتروني موجود بالفعل',
             'phone.unique' => 'رقم الجوال موجود بالفعل',
             'email.required_without' => 'الرجاء كتابة البريد الإلكتروني او رقم الجوال',
             'phone.required_without' => 'الرجاء كتابة البريد الإلكتروني او رقم الجوال',
             'password.required' => 'الرجاء كتابة كلمة المرور',
-            'name.required' => 'الرجاء كتابة الاسم'
+            'name.required' => 'الرجاء كتابة الاسم',
+            'status.required' => 'الرجاء كتابة حالة الموظف',
+            'status.in' => 'الرجاء كتابة حالة الموظف بشكل صحيح'
         ]);
 
 
@@ -48,6 +51,7 @@ class UsersManagementController extends Controller
         $user->name = $request->input('name');
         $user->job_title = $request->input('job_title');
         $user->departments = $request->input('departments');
+        $user->user_status = $request->input('status');
 
         if ($user->save()) {
             return response([
@@ -68,13 +72,16 @@ class UsersManagementController extends Controller
             // 'password' => 'required',
             'name' => 'required',
             'departments' => 'nullable|json',
+            'status' => 'required|in:active,not_active'
         ], [
             'email.unique' => 'البريد الإلكتروني موجود بالفعل',
             'phone.unique' => 'رقم الجوال موجود بالفعل',
             'email.required_without' => 'الرجاء كتابة البريد الإلكتروني او رقم الجوال',
             'phone.required_without' => 'الرجاء كتابة البريد الإلكتروني او رقم الجوال',
             // 'password.required' => 'الرجاء كتابة كلمة المرور',
-            'name.required' => 'الرجاء كتابة الاسم'
+            'name.required' => 'الرجاء كتابة الاسم',
+            'status.required' => 'الرجاء كتابة حالة الموظف',
+            'status.in' => 'الرجاء كتابة حالة الموظف بشكل صحيح'
         ]);
 
         if ($validator->fails()) {
@@ -100,6 +107,7 @@ class UsersManagementController extends Controller
         $user->name = $request->input('name');
         $user->job_title = $request->input('job_title');
         $user->departments = $request->input('departments');
+        $user->user_status = $request->input('status');
 
         if ($user->save()) {
             return response([
