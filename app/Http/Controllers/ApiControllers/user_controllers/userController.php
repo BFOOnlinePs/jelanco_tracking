@@ -114,7 +114,7 @@ class userController extends Controller
     public function changePassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            // 'user_id' => 'required|exists:users,id',
+            // 'user_id' => 'required|exists:users,id',,
             'password' => 'required',
         ], [
             // 'user_id.required' => 'الرجاء كتابة رقم المستخدم',
