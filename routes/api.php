@@ -6,6 +6,7 @@ use App\Http\Controllers\ApiControllers\comment_controllers\CommentController;
 use App\Http\Controllers\ApiControllers\department_controllers\DepartmentControllers;
 use App\Http\Controllers\ApiControllers\fcm_controllers\FcmController;
 use App\Http\Controllers\ApiControllers\fcm_controllers\NotificationController;
+use App\Http\Controllers\ApiControllers\interested_parties_controllers\InterestedPartiesController;
 use App\Http\Controllers\ApiControllers\manager_employees_controllers\ManagerEmployeeController;
 use App\Http\Controllers\ApiControllers\permissions_roles_controllers\MobilePermissionController;
 use App\Http\Controllers\ApiControllers\permissions_roles_controllers\RoleController;
@@ -91,6 +92,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('comments', [CommentController::class, 'addTaskSubmissionComment']);
     Route::get('task-submissions/{id}/comments', [CommentController::class, 'getSubmissionComments']);
     Route::get('task-submissions/{id}/comments/count', [CommentController::class, 'getSubmissionCommentCount']);
+
+    // interested parties
+    Route::post('interested-parties', [InterestedPartiesController::class, 'handleInterestedParties']);
 
     // notifications
     Route::get('notifications', [NotificationController::class, 'getUserNotifications']);
