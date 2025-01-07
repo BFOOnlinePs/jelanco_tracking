@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use App\Services\FcmService as ServicesFcmService;
 use App\Services\FileUploadService;
+use App\Services\InterestedPartiesService;
 use App\Services\VideoThumbnailService;
 use Illuminate\Support\Facades\Storage;
 
@@ -26,19 +27,22 @@ class TaskController extends Controller
     protected $submissionService;
     protected $fcmService;
     protected $fileUploadService;
+    protected $interestedPartiesService;
 
     public function __construct(
         FileUploadService $fileUploadService,
         VideoThumbnailService $thumbnailService,
         MediaService $mediaService,
         SubmissionService $submissionService,
-        ServicesFcmService $fcmService
+        ServicesFcmService $fcmService,
+        InterestedPartiesService $interestedPartiesService,
     ) {
         $this->mediaService = $mediaService;
         $this->thumbnailService = $thumbnailService;
         $this->submissionService = $submissionService;
         $this->fcmService = $fcmService;
         $this->fileUploadService = $fileUploadService;
+        $this->interestedPartiesService = $interestedPartiesService;
     }
 
     private function handleAttachmentsUpload($files, $task)
@@ -198,6 +202,8 @@ class TaskController extends Controller
             'start_time' => 'nullable',
             'end_time' => 'nullable',
             'category_id' => 'nullable|exists:task_categories,c_id',
+            'interested_party_ids' => 'array',
+            'interested_party_ids.*' => 'integer|exists:users,id',
             'images.*' => 'image|mimes:jpg,png,jpeg,gif,svg',
             'videos.*' => 'mimetypes:video/mp4',
             'documents.*' => 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx',
@@ -227,7 +233,6 @@ class TaskController extends Controller
 
         if ($task->save()) {
             // add the media
-
             if ($request->hasFile('images')) {
                 $this->handleAttachmentsUpload($request->images, $task,);
             }
@@ -239,6 +244,9 @@ class TaskController extends Controller
             if ($request->hasFile('documents')) {
                 $this->handleAttachmentsUpload($request->documents, $task,);
             }
+
+            // add interested parties
+            $this->interestedPartiesService->addRemoveInterestedParties('task',$task->t_id, $request->interested_party_ids);
 
             $task->added_by_user = User::where('id', $task->t_added_by)->select('id', 'name', 'image')->first();
             $task->assigned_to_users = $this->submissionService->getAssignedUsers($task->t_assigned_to);
