@@ -123,6 +123,10 @@ class TaskController extends Controller
             $task->assigned_to_users = User::whereIn('id', json_decode($task->t_assigned_to))->select('id', 'name', 'image')->get();
 
             $task->task_attachments_categories = $this->mediaService->getMedia('tasks', $task->t_id);
+
+            // add interested parties
+            $task->interested_parties = $this->interestedPartiesService->getInterestedParties('task', $task->t_id);
+
         } else {
             return response()->json([
                 'status' => false,
@@ -246,7 +250,9 @@ class TaskController extends Controller
             }
 
             // add interested parties
-            $this->interestedPartiesService->addRemoveInterestedParties('task',$task->t_id, $request->interested_party_ids);
+            if ($request->interested_party_ids) {
+                $this->interestedPartiesService->addRemoveInterestedParties('task', $task->t_id, $request->interested_party_ids);
+            }
 
             $task->added_by_user = User::where('id', $task->t_added_by)->select('id', 'name', 'image')->first();
             $task->assigned_to_users = $this->submissionService->getAssignedUsers($task->t_assigned_to);
@@ -295,6 +301,8 @@ class TaskController extends Controller
             'end_time' => 'nullable',
             'category_id' => 'nullable|exists:task_categories,c_id',
             'assigned_to' => 'required',
+            'interested_party_ids' => 'array',
+            'interested_party_ids.*' => 'integer|exists:users,id',
             'status' => 'required|in:active,notActive',
             'images.*' => 'image|mimes:jpg,png,jpeg,gif,svg',
             'videos.*' => 'mimetypes:video/mp4',
@@ -335,6 +343,12 @@ class TaskController extends Controller
                 't_category_id' => $request->input('category_id'),
                 't_assigned_to' => $request->input('assigned_to'),
             ]);
+
+            // add interested parties
+            if ($request->interested_party_ids) {
+                $this->interestedPartiesService->addRemoveInterestedParties('task', $task->t_id, $request->interested_party_ids);
+            }
+
 
             // add the media ...
             // delete media except the old attachments

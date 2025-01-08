@@ -20,6 +20,27 @@ class InterestedPartiesController extends Controller
         $this->InterestedPartiesService = $InterestedPartiesService;
     }
 
+    public function getInterestedParties(Request $request)
+    {
+        // query params
+        $validator = Validator::make($request->all(), [
+            'article_type' => 'required|string|in:task,submission',
+            'article_id' => 'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first()
+            ], 422);
+        }
+
+        return response()->json([
+            'status' => true,
+            'interested_parties' => $this->InterestedPartiesService->getInterestedParties($request->article_type, $request->article_id),
+        ]);
+    }
+
     public function handleInterestedParties(Request $request)
     {
         $validator = Validator::make($request->all(), [

@@ -94,7 +94,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('task-submissions/{id}/comments/count', [CommentController::class, 'getSubmissionCommentCount']);
 
     // interested parties
+    Route::get('interested-parties', [InterestedPartiesController::class, 'getInterestedParties']);
     Route::post('interested-parties', [InterestedPartiesController::class, 'handleInterestedParties']);
+
 
     // notifications
     Route::get('notifications', [NotificationController::class, 'getUserNotifications']);

@@ -17,4 +17,9 @@ class InterestedPartyModel extends Model
         'ip_interested_party_id',
         'ip_added_by_id',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'ip_interested_party_id', 'id');
+    }
 }

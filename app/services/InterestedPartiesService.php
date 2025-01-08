@@ -42,4 +42,13 @@ class InterestedPartiesService
             }
         }
     }
+
+    public function getInterestedParties($article_type, $article_id)
+    {
+        // get the ipInterestedPartyId with user object
+        return InterestedPartyModel::where('ip_article_type', $article_type)
+            ->where('ip_article_id', $article_id)
+            ->with('user:id,name')
+            ->get();
+    }
 }
