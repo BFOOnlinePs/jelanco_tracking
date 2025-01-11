@@ -77,11 +77,41 @@ class InterestedPartiesController extends Controller
             ], 422);
         }
 
+        // Log::info('interested_party_ids' . $request->interested_party_ids);
+
         $this->InterestedPartiesService->addRemoveInterestedParties($request->article_type, $request->article_id, $request->interested_party_ids);
 
         return response()->json([
             'status' => true,
-            'message' => 'تم تحديث الأطراف المعنية بنجاح '
+            'message' => 'تم تحديث الجهات المعنية بنجاح '
+        ]);
+    }
+
+    public function getArticlesOfInterest(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'interested_party_id' => 'required|integer|exists:users,id',
+            'article_type' => 'required|string|in:task,submission',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first()
+            ], 422);
+        }
+
+        $articles_of_interest = $this->InterestedPartiesService->getArticlesOfInterest($request->interested_party_id, $request->article_type);
+
+        return response()->json([
+            'status' => true,
+            'pagination' => [
+                'current_page' => $articles_of_interest->currentPage(),
+                'last_page' => $articles_of_interest->lastPage(),
+                'per_page' => $articles_of_interest->perPage(),
+                'total_items' => $articles_of_interest->total(),
+            ],
+            'articles_of_interest' => $articles_of_interest->values(),
         ]);
     }
 }

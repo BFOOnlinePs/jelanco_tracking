@@ -27,6 +27,11 @@ class TaskSubmissionsModel extends Model
         return $this->belongsTo(User::class, 'ts_submitter', 'id');
     }
 
+    public function submitterUser()
+    {
+        return $this->belongsTo(User::class, 'ts_submitter', 'id');
+    }
+
     public function comments()
     {
         return $this->hasMany(TaskSubmissionCommentsModel::class , 'tsc_task_submission_id' , 'ts_id');

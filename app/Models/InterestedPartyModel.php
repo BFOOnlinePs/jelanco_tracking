@@ -22,4 +22,19 @@ class InterestedPartyModel extends Model
     {
         return $this->belongsTo(User::class, 'ip_interested_party_id', 'id');
     }
+
+    public function addedByUser()
+    {
+        return $this->belongsTo(User::class, 'ip_added_by_id', 'id');
+    }
+
+    public function task()
+    {
+        return $this->belongsTo(TaskModel::class, 'ip_article_id', 't_id');
+    }
+
+    public function submission()
+    {
+        return $this->belongsTo(TaskSubmissionsModel::class, 'ip_article_id', 'ts_id');
+    }
 }

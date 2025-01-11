@@ -96,6 +96,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // interested parties
     Route::get('interested-parties', [InterestedPartiesController::class, 'getInterestedParties']);
     Route::post('interested-parties', [InterestedPartiesController::class, 'handleInterestedParties']);
+    Route::post('interested-parties/articles', [InterestedPartiesController::class, 'getArticlesOfInterest']);
 
 
     // notifications

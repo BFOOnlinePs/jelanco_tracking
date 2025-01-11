@@ -177,7 +177,6 @@ class TaskController extends Controller
                     $submission->submission_comments = $this->submissionService->getSubmissionComments($submission);
                 }
 
-
                 $submission_media = $this->mediaService->getMedia('task_submissions', $submission->ts_id);
 
                 $submission->submission_attachments_categories = $submission_media;
