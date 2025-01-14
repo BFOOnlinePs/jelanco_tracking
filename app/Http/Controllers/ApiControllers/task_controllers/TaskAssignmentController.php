@@ -108,7 +108,6 @@ class TaskAssignmentController extends Controller
             ->select('tasks.t_id', 'tasks.t_content', 'tasks.t_added_by', 'tasks.created_at')
             ->paginate($perPage);
 
-
         return response()->json([
             'status' => true,
             'pagination' => [

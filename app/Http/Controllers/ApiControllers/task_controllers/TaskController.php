@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Services\FcmService as ServicesFcmService;
 use App\Services\FileUploadService;
 use App\Services\InterestedPartiesService;
+use App\Services\TaskStatusService;
 use App\Services\VideoThumbnailService;
 use Illuminate\Support\Facades\Storage;
 
@@ -28,6 +29,7 @@ class TaskController extends Controller
     protected $fcmService;
     protected $fileUploadService;
     protected $interestedPartiesService;
+    protected $taskStatusService;
 
     public function __construct(
         FileUploadService $fileUploadService,
@@ -36,6 +38,7 @@ class TaskController extends Controller
         SubmissionService $submissionService,
         ServicesFcmService $fcmService,
         InterestedPartiesService $interestedPartiesService,
+        TaskStatusService $taskStatusService
     ) {
         $this->mediaService = $mediaService;
         $this->thumbnailService = $thumbnailService;
@@ -43,6 +46,7 @@ class TaskController extends Controller
         $this->fcmService = $fcmService;
         $this->fileUploadService = $fileUploadService;
         $this->interestedPartiesService = $interestedPartiesService;
+        $this->taskStatusService = $taskStatusService;
     }
 
     private function handleAttachmentsUpload($files, $task)
@@ -302,7 +306,7 @@ class TaskController extends Controller
             'assigned_to' => 'required',
             'interested_party_ids' => 'array',
             'interested_party_ids.*' => 'integer|exists:users,id',
-            'status' => 'required|in:active,notActive',
+            // 'status' => 'required|in:active,notActive,canceled',
             'images.*' => 'image|mimes:jpg,png,jpeg,gif,svg',
             'videos.*' => 'mimetypes:video/mp4',
             'documents.*' => 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx',
@@ -338,10 +342,13 @@ class TaskController extends Controller
                 't_content' => $request->input('content'),
                 't_planed_start_time' => $request->input('start_time'),
                 't_planed_end_time' => $request->input('end_time'),
-                't_status' => $request->input('status'),
+                // 't_status' => $request->input('status'),
                 't_category_id' => $request->input('category_id'),
                 't_assigned_to' => $request->input('assigned_to'),
             ]);
+
+            // update status
+            $this->taskStatusService->updateTaskStatus($task, $request->input('status'));
 
             // add interested parties
             if ($request->interested_party_ids) {

@@ -19,7 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use App\Services\FcmService as ServicesFcmService;
-
+use App\Services\TaskStatusService;
 
 class TaskSubmissionController extends Controller
 {
@@ -29,6 +29,7 @@ class TaskSubmissionController extends Controller
     protected $submissionService;
     protected $managerEmployeesService;
     protected $fcmService;
+    protected $taskStatusService;
 
     // Inject the FileUploadService, thumbnailService and MediaService into the controller
     public function __construct(
@@ -37,7 +38,8 @@ class TaskSubmissionController extends Controller
         MediaService $mediaService,
         SubmissionService $submissionService,
         ManagerEmployeesService $managerEmployeesService,
-        ServicesFcmService $fcmService
+        ServicesFcmService $fcmService,
+        TaskStatusService $taskStatusService
     ) {
         $this->fileUploadService = $fileUploadService;
         $this->thumbnailService = $thumbnailService;
@@ -45,6 +47,7 @@ class TaskSubmissionController extends Controller
         $this->submissionService = $submissionService;
         $this->managerEmployeesService = $managerEmployeesService;
         $this->fcmService = $fcmService;
+        $this->taskStatusService = $taskStatusService;
     }
 
 
@@ -185,6 +188,12 @@ class TaskSubmissionController extends Controller
 
             if ($request->has('old_attachments')) {
                 $this->handleOldAttachments($request->old_attachments, $task_submission,);
+            }
+
+            // if the submission has task, update the task status
+            if($task_submission->ts_task_id != -1) {
+                $task = TaskModel::where('t_id', $task_submission->ts_task_id)->first();
+                $this->taskStatusService->updateTaskStatus($task);
             }
 
             // $submission_media = $this->mediaService->getMedia('task_submissions', $task_submission->ts_id);

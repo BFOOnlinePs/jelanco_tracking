@@ -11,6 +11,7 @@ use App\Http\Controllers\ApiControllers\manager_employees_controllers\ManagerEmp
 use App\Http\Controllers\ApiControllers\permissions_roles_controllers\MobilePermissionController;
 use App\Http\Controllers\ApiControllers\permissions_roles_controllers\RoleController;
 use App\Http\Controllers\ApiControllers\permissions_roles_controllers\UserRoleAndPermissionController;
+use App\Http\Controllers\ApiControllers\submission_evaluation_controllers\SubmissionEvaluationController;
 use App\Http\Controllers\ApiControllers\task_category_controllers\TaskCategoryController;
 use App\Http\Controllers\ApiControllers\task_controllers\TaskAssignmentController;
 use App\Http\Controllers\ApiControllers\task_controllers\TaskController;
@@ -59,6 +60,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('task-submissions/{id}/versions', [TaskSubmissionController::class, 'getTaskSubmissionVersions']);
     Route::get('user-submissions', [TaskSubmissionController::class, 'getUserSubmissions']);
     Route::get('task-submissions/{id}/task-and-comments', [TaskSubmissionController::class, 'getTaskSubmissionWithTaskAndComments']);
+    Route::post('task-submissions/evaluate', [SubmissionEvaluationController::class, 'evaluate']);
 
     // manager and employees
     Route::get('users/employees', [ManagerEmployeeController::class, 'getManagerEmployees']);
