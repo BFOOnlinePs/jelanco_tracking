@@ -38,7 +38,6 @@ class TaskStatusService
     {
         if ($status) {
             $task->update(['t_status' => $status]);
-            return;
         }
 
         if ($task->t_status == 'canceled') {

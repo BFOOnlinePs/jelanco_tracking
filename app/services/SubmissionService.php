@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\helpers\SystemPermissions;
+use App\Models\SubmissionEvaluationModel;
 use App\Models\TaskCategoriesModel;
 use App\Models\TaskModel;
 use App\Models\User;
@@ -193,5 +194,15 @@ class SubmissionService
         });
 
         return $comments;
+    }
+
+    // submission evaluation
+    public function getSubmissionEvaluations($submission_id)
+    {
+        $evaluations = SubmissionEvaluationModel::where('se_submission_id', $submission_id)
+            ->with('evaluatorUser:id,name,image')
+            ->get();
+
+        return $evaluations;
     }
 }

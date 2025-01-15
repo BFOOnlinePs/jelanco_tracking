@@ -53,7 +53,7 @@ class SubmissionEvaluationController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'تم التقييم بنجاح',
-            'data' => $evaluation
+            'evaluation' => $evaluation
         ], 200);
 
     }

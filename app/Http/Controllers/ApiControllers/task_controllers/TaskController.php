@@ -185,6 +185,8 @@ class TaskController extends Controller
 
                 $submission->submission_attachments_categories = $submission_media;
 
+                $submission->evaluations = $this->submissionService->getSubmissionEvaluations($submission->ts_id);
+
                 return $submission;
             });
         } else {

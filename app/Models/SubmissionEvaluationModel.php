@@ -19,4 +19,9 @@ class SubmissionEvaluationModel extends Model
         'se_rating',
         'se_evaluator_notes',
     ];
+
+    public function evaluatorUser()
+    {
+        return $this->belongsTo(User::class, 'se_evaluator_id', 'id');
+    }
 }
