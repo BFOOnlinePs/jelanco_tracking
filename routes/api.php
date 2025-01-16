@@ -61,6 +61,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('user-submissions', [TaskSubmissionController::class, 'getUserSubmissions']);
     Route::get('task-submissions/{id}/task-and-comments', [TaskSubmissionController::class, 'getTaskSubmissionWithTaskAndComments']);
     Route::post('task-submissions/evaluate', [SubmissionEvaluationController::class, 'evaluate']);
+    Route::post('task-submissions/update-status', [TaskSubmissionController::class, 'updateSubmissionStatus']);
+
 
     // manager and employees
     Route::get('users/employees', [ManagerEmployeeController::class, 'getManagerEmployees']);

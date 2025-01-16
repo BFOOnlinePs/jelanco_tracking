@@ -19,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use App\Services\FcmService as ServicesFcmService;
+use App\Services\SubmissionStatusService;
 use App\Services\TaskStatusService;
 
 class TaskSubmissionController extends Controller
@@ -30,6 +31,7 @@ class TaskSubmissionController extends Controller
     protected $managerEmployeesService;
     protected $fcmService;
     protected $taskStatusService;
+    protected $submissionStatusService;
 
     // Inject the FileUploadService, thumbnailService and MediaService into the controller
     public function __construct(
@@ -39,7 +41,8 @@ class TaskSubmissionController extends Controller
         SubmissionService $submissionService,
         ManagerEmployeesService $managerEmployeesService,
         ServicesFcmService $fcmService,
-        TaskStatusService $taskStatusService
+        TaskStatusService $taskStatusService,
+        SubmissionStatusService $submissionStatusService
     ) {
         $this->fileUploadService = $fileUploadService;
         $this->thumbnailService = $thumbnailService;
@@ -48,6 +51,7 @@ class TaskSubmissionController extends Controller
         $this->managerEmployeesService = $managerEmployeesService;
         $this->fcmService = $fcmService;
         $this->taskStatusService = $taskStatusService;
+        $this->submissionStatusService = $submissionStatusService;
     }
 
 
@@ -169,7 +173,7 @@ class TaskSubmissionController extends Controller
         $task_submission->ts_start_longitude = $request->input('start_longitude');
         $task_submission->ts_actual_start_time = $request->input('start_time');
         $task_submission->ts_actual_end_time = $request->input('end_time');
-        $task_submission->ts_status = 'accepted'; // default
+        $task_submission->ts_status = 'inProgress'; // default
 
         if ($task_submission->save()) {
             // add the media ...
@@ -191,7 +195,7 @@ class TaskSubmissionController extends Controller
             }
 
             // if the submission has task, update the task status
-            if($task_submission->ts_task_id != -1) {
+            if ($task_submission->ts_task_id != -1) {
                 $task = TaskModel::where('t_id', $task_submission->ts_task_id)->first();
                 $this->taskStatusService->updateTaskStatus($task);
             }
@@ -340,6 +344,10 @@ class TaskSubmissionController extends Controller
             $task_submission->submission_comments = $this->submissionService->getSubmissionComments($task_submission);
         }
 
+        // evaluations
+        $task_submission->evaluations = $this->submissionService->getSubmissionEvaluations($task_submission->ts_id);
+
+
 
         return response()->json([
             'status' => true,
@@ -447,5 +455,28 @@ class TaskSubmissionController extends Controller
             ],
             'submissions' => $submissions_with_tasks->values()
         ]);
+    }
+
+    public function updateSubmissionStatus(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'submission_id' => 'required|exists:task_submissions,ts_id',
+            'status' => 'required|in:accepted,rejected',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        $submission = TaskSubmissionsModel::where('ts_id', $request->input('submission_id'))->first();
+        $this->submissionStatusService->updateSubmissionStatus($submission, $request->input('status'));
+
+        return response()->json([
+            'status' => true,
+            'message' => 'تم تحديث حالة التسليم بنجاح',
+        ], 200);
     }
 }

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\ApiControllers\submission_evaluation_controllers;
 use App\Http\Controllers\Controller;
 use App\Models\SubmissionEvaluationModel;
 use App\Models\TaskModel;
+use App\Models\TaskSubmissionsModel;
+use App\Services\SubmissionStatusService;
 use App\Services\TaskStatusService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -12,10 +14,12 @@ use Illuminate\Support\Facades\Validator;
 class SubmissionEvaluationController extends Controller
 {
     protected $taskStatusService;
+    protected $submissionStatusService;
 
-    public function __construct(TaskStatusService $taskStatusService)
+    public function __construct(TaskStatusService $taskStatusService, SubmissionStatusService $submissionStatusService)
     {
         $this->taskStatusService = $taskStatusService;
+        $this->submissionStatusService = $submissionStatusService;
     }
 
     public function evaluate(Request $request)
@@ -43,11 +47,14 @@ class SubmissionEvaluationController extends Controller
             'se_evaluator_notes' => $request->evaluator_notes
         ]);
 
-        // Update task status
-        if($request->has('task_id') && $request->task_id) {
+        if ($request->has('task_id') && $request->task_id) {
+            // Update task status
             $task = TaskModel::where('t_id', $request->task_id)->first();
             $this->taskStatusService->updateTaskStatus($task);
-
+        } else {
+            // update submission status
+            $taskSubmission = TaskSubmissionsModel::where('ts_id', $request->task_submission_id)->first();
+            $this->submissionStatusService->updateSubmissionStatus($taskSubmission);
         }
 
         return response()->json([
@@ -55,6 +62,5 @@ class SubmissionEvaluationController extends Controller
             'message' => 'تم التقييم بنجاح',
             'evaluation' => $evaluation
         ], 200);
-
     }
 }
