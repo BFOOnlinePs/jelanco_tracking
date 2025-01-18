@@ -477,6 +477,7 @@ class TaskSubmissionController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'تم تحديث حالة التسليم بنجاح',
+            'submission_status' => $submission->ts_status
         ], 200);
     }
 }

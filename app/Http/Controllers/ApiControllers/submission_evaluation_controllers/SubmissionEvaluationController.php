@@ -38,7 +38,6 @@ class SubmissionEvaluationController extends Controller
             ], 400);
         }
 
-
         $evaluation = SubmissionEvaluationModel::create([
             'se_task_id' => $request->task_id,
             'se_submission_id' => $request->task_submission_id,
@@ -60,7 +59,9 @@ class SubmissionEvaluationController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'تم التقييم بنجاح',
-            'evaluation' => $evaluation
+            'evaluation' => $evaluation,
+            'submission_status' => $taskSubmission->ts_status ?? null,
+            'task_status' => $task->t_status ?? null
         ], 200);
     }
 }

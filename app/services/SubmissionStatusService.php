@@ -19,6 +19,5 @@ class SubmissionStatusService
             $submission->update(['ts_status' => 'evaluated']);
             return;
         }
-
     }
 }
