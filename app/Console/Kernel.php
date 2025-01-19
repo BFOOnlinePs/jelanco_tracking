@@ -13,6 +13,11 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         // $schedule->command('inspire')->hourly();
+        // $schedule->command('app:send-daily-task-submission-reminder')->dailyAt('07:00');
+        // $schedule->command('app:send-daily-task-submission-reminder')->cron('0 7 * * *');
+        $schedule->command('app:send-daily-task-submission-reminder')->cron('* * * * *');
+        // * * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
+
     }
 
     /**

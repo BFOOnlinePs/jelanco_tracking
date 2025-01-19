@@ -27,6 +27,10 @@ class User extends Authenticatable
         return $this->hasMany(NotificationModel::class);
     }
 
+    public function hasSubmittedTask($taskId, $userId)
+    {
+        return TaskSubmissionsModel::where('ts_task_id', $taskId)->where('ts_submitter', $userId)->exists();
+    }
 
     /**
      * The attributes that are mass assignable.
