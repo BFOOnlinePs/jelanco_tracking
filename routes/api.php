@@ -33,6 +33,7 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::post('/login', [LoginController::class, 'userLogin']);
+Route::post('logout', [LogoutController::class, 'logout']);
 
 // FCM
 Route::post('/storeFcmUserToken', [FcmController::class, 'storeFcmUserToken']);
@@ -40,9 +41,7 @@ Route::post('/deleteFcmUserToken', [FcmController::class, 'deleteFcmUserToken'])
 Route::post('/updateFcmUserToken', [FcmController::class, 'updateFcmUserToken']);
 
 
-Route::group(['middleware' => ['auth:sanctum']], function () {
-    Route::post('logout', [LogoutController::class, 'logout']);
-
+Route::group(['middleware' => ['auth:sanctum', 'checkActive']], function () {
     // tasks
     Route::get('tasks', [TaskController::class, 'getAllTasks']);
     Route::get('tasks/{id}/submissions-and-comments', [TaskController::class, 'getTaskWithSubmissionsAndComments']);

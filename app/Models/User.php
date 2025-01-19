@@ -19,7 +19,7 @@ class User extends Authenticatable
 
     public function notificationTokens()
     {
-        return $this->hasMany(FcmRegistrationTokensModel::class);
+        return $this->hasMany(FcmRegistrationTokensModel::class, 'frt_user_id', 'id');
     }
 
     public function notifications()

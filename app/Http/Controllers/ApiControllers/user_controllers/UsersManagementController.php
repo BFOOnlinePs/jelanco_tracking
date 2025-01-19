@@ -4,11 +4,20 @@ namespace App\Http\Controllers\ApiControllers\user_controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\AuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class UsersManagementController extends Controller
 {
+    protected $authService;
+
+    public function __construct()
+    {
+        $this->authService = new AuthService();
+    }
+
+
     public function addUser(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -108,6 +117,12 @@ class UsersManagementController extends Controller
         $user->job_title = $request->input('job_title');
         $user->departments = $request->input('departments');
         $user->user_status = $request->input('status');
+
+        // if status is not active, then remove the token
+        if ($user->user_status != 'active') {
+           // auth service to removeTokens
+            $this->authService->removeTokens($user);
+        }
 
         if ($user->save()) {
             return response([

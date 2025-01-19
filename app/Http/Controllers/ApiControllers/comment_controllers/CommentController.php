@@ -38,12 +38,12 @@ class CommentController extends Controller
         $this->thumbnailService = $thumbnailService;
         $this->mediaService = $mediaService;
         $this->submissionService = $submissionService;
-        $this->fcmService = $fcmService; 
+        $this->fcmService = $fcmService;
     }
 
     private function handleAttachmentsUpload($files, $fk_id) // $fk_id = task_submission_comment_id
     {
-        foreach ($files as $file) { 
+        foreach ($files as $file) {
             $attachment = new AttachmentsModel();
             $folderPath = 'comments_attachments';
             $file_name = $this->fileUploadService->uploadFile($file, $folderPath);
@@ -188,7 +188,8 @@ class CommentController extends Controller
     protected function emitSocketIOEvent($comment)
     {
         $client = new \GuzzleHttp\Client();
-        $url = config('constants.socket_io_url');  
+        $url = config('constants.socket_io_url');
+        Log::info('Socket IO URL: ' . $url);
         $client->post($url, [
             'json' => [
                 'event' => 'new-comment',
