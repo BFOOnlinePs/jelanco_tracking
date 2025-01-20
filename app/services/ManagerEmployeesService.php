@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\ManagerEmployeesModel;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 class ManagerEmployeesService
 {
@@ -26,4 +27,14 @@ class ManagerEmployeesService
         return $employeeIds;
     }
 
+    public function getManagersByEmployeeId($employeeId)
+    {
+        Log::info('Employee ID in getManagersByEmployeeId: ' . $employeeId);
+        $managerIds = ManagerEmployeesModel::whereJsonContains('me_employee_ids', strval($employeeId))
+            ->pluck('me_manager_id')
+            ->toArray();
+
+        Log::info('Manager IDs in getManagersByEmployeeId: ' . json_encode($managerIds));
+        return $managerIds;
+    }
 }

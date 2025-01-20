@@ -6,6 +6,13 @@ use App\Models\InterestedPartyModel;
 
 class InterestedPartiesService
 {
+    protected $mediaService;
+
+    public function __construct(MediaService $mediaService)
+    {
+        $this->mediaService = $mediaService;
+    }
+
     public function addRemoveInterestedParties($article_type, $article_id, $interested_party_ids)
     {
         $userId = auth()->user()->id;
@@ -63,6 +70,8 @@ class InterestedPartiesService
 
     public function getArticlesOfInterest($interested_party_id, $article_type)
     {
+        // get the AttachmentsCategories with them
+
         $interested_parties = InterestedPartyModel::where('ip_interested_party_id', $interested_party_id)
             ->where('ip_article_type', $article_type)
             ->with('addedByUser:id,name')
@@ -87,8 +96,12 @@ class InterestedPartiesService
         foreach ($interested_parties as $interested_party) {
             if ($article_type === 'task') {
                 $interested_party->task->interested_party_users = $this->getOnlyInterestedPartiesUsers('task', $interested_party->task->t_id);
+                // Attach media
+                $interested_party->task->task_attachments_categories = $this->mediaService->getMedia('tasks', $interested_party->task->t_id);
             } elseif ($article_type === 'submission') {
                 $interested_party->submission->interested_party_users = $this->getOnlyInterestedPartiesUsers('submission', $interested_party->submission->ts_id);
+                // Attach media
+                $interested_party->submission->submission_attachments_categories = $this->mediaService->getMedia('task_submissions', $interested_party->submission->ts_id);
             }
         }
 

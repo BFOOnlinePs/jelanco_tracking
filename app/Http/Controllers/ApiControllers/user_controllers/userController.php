@@ -131,7 +131,7 @@ class userController extends Controller
 
         $user_id = Auth::user()->id;
         $user = User::where('id', $user_id)->first();
-        if($user) {
+        if ($user) {
             $user->password = bcrypt($request->password);
             if ($user->save()) {
                 return response()->json([
@@ -162,6 +162,8 @@ class userController extends Controller
 
     public function getAllUsers(Request $request)
     {
+
+
         // Check if pagination is requested
         if ($request->has('paginate') && $request->paginate) {
             $users = User::select('id', 'name', 'image', 'job_title')
@@ -172,7 +174,7 @@ class userController extends Controller
                     return $query->with('roles');
                 })
                 ->orderBy('updated_at', 'desc')
-                ->paginate(10);
+                ->paginate($request->per_page ?? 10);
         } else {
             // Return all users
             $users = User::select('id', 'name', 'image', 'job_title')

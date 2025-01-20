@@ -220,6 +220,7 @@ class TaskSubmissionController extends Controller
             Log::info('submissions:');
             Log::info('$task_submission->ts_parent_id ' . $task_submission->ts_task_id);
 
+            // if the submission has task, send the notification to the task creator
             if ($task_submission->ts_task_id != -1) {
                 // id of the user how added the task
                 $users_id = TaskModel::where('t_id', $task_submission->ts_task_id)
@@ -228,41 +229,48 @@ class TaskSubmissionController extends Controller
                     ->toArray();
 
                 $notification_title = $task_submission->ts_parent_id == -1 ? 'تم تسليم تكليف من قبل ' : 'تم تعديل تسليم من قبل ';
+            } else {
+                // if the submission has no task, send the notification to the managers of the submitter
+                $users_id = $this->managerEmployeesService->getManagersByEmployeeId(auth()->user()->id);
+                Log::info('managers: ' . json_encode($users_id));
 
-                // look for old notification for the submission, and change the type-id to the new submission id
-                // so the user will navigate to the last version
-                // for both submissions and comments
-                $old_submissions_notifications = NotificationModel::where('type', config('constants.notification_type.submission'))
-                    ->where('type_id', $request->input('parent_id'))
-                    // ->whereIn('type_id', $submissionIds) // Use whereIn to filter by multiple IDs
-
-                    ->get();
-
-                $old_comments_notifications = NotificationModel::where('type', config('constants.notification_type.comment'))
-                    ->where('type_id', $request->input('parent_id'))->get();
-
-                $old_notifications = $old_submissions_notifications->merge($old_comments_notifications);
-
-
-                foreach ($old_notifications as $notification) {
-                    $notification->type_id = $task_submission->ts_id;
-                    $notification->save();
-                }
-
-                try {
-                    if (!empty($users_id)) {
-                        $this->fcmService->sendNotification(
-                            $notification_title . auth()->user()->name,
-                            $task_submission->ts_content,
-                            $users_id,
-                            config('constants.notification_type.submission'),
-                            $task_submission->ts_id
-                        );
-                    }
-                } catch (\Throwable $th) {
-                    Log::error($th->getMessage());
-                }
+                $notification_title = $task_submission->ts_parent_id == -1 ? 'تم إضافة تسليم جديد من قبل ' : 'تم تعديل تسليم من قبل ';
             }
+
+
+            // look for old notification for the submission, and change the type-id to the new submission id
+            // so the user will navigate to the last version
+            // for both submissions and comments
+            $old_submissions_notifications = NotificationModel::where('type', config('constants.notification_type.submission'))
+                ->where('type_id', $request->input('parent_id'))
+                // ->whereIn('type_id', $submissionIds) // Use whereIn to filter by multiple IDs
+                ->get();
+
+            $old_comments_notifications = NotificationModel::where('type', config('constants.notification_type.comment'))
+                ->where('type_id', $request->input('parent_id'))->get();
+
+            $old_notifications = $old_submissions_notifications->merge($old_comments_notifications);
+
+
+            foreach ($old_notifications as $notification) {
+                $notification->type_id = $task_submission->ts_id;
+                $notification->save();
+            }
+
+            try {
+                if (!empty($users_id)) {
+                    $this->fcmService->sendNotification(
+                        $notification_title . auth()->user()->name,
+                        $task_submission->ts_content,
+                        $users_id,
+                        config('constants.notification_type.submission'),
+                        $task_submission->ts_id
+                    );
+                }
+            } catch (\Throwable $th) {
+                Log::error($th->getMessage());
+            }
+
 
             return response()->json([
                 'status' => true,
