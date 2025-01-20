@@ -19,7 +19,7 @@ class User extends Authenticatable
 
     public function notificationTokens()
     {
-        return $this->hasMany(FcmRegistrationTokensModel::class);
+        return $this->hasMany(FcmRegistrationTokensModel::class, 'frt_user_id', 'id');
     }
 
     public function notifications()
@@ -27,6 +27,10 @@ class User extends Authenticatable
         return $this->hasMany(NotificationModel::class);
     }
 
+    public function hasSubmittedTask($taskId, $userId)
+    {
+        return TaskSubmissionsModel::where('ts_task_id', $taskId)->where('ts_submitter', $userId)->exists();
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -41,6 +45,7 @@ class User extends Authenticatable
         'job_title',
         'departments',
         'phone_number',
+        'user_status'
     ];
 
     /**

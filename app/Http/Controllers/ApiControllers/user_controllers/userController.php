@@ -111,6 +111,42 @@ class userController extends Controller
         ]);
     }
 
+    public function changePassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            // 'user_id' => 'required|exists:users,id',
+            'password' => 'required',
+        ], [
+            // 'user_id.required' => 'الرجاء كتابة رقم المستخدم',
+            // 'user_id.exists' => 'الرجاء كتابة رقم المستخدم بشكل صحيح',
+            'password.required' => 'الرجاء كتابة كلمة المرور',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(),
+            ]);
+        }
+
+        $user_id = Auth::user()->id;
+        $user = User::where('id', $user_id)->first();
+        if ($user) {
+            $user->password = bcrypt($request->password);
+            if ($user->save()) {
+                return response()->json([
+                    'status' => true,
+                    'message' => 'تم تغيير كلمة المرور بنجاح',
+                ]);
+            }
+        }
+
+        return response()->json([
+            'status' => false,
+            'message' => 'حدث خطأ أثناء تغيير كلمة المرور',
+        ]);
+    }
+
     public function getUserById($id)
     {
         $user = User::find($id);
@@ -126,17 +162,25 @@ class userController extends Controller
 
     public function getAllUsers(Request $request)
     {
+
+
         // Check if pagination is requested
         if ($request->has('paginate') && $request->paginate) {
             $users = User::select('id', 'name', 'image', 'job_title')
                 ->when(request('search'), function ($query, $search) {
                     return $query->where('name', 'LIKE', "%{$search}%");
                 })
+                ->when($request->is_role, function ($query) {
+                    return $query->with('roles');
+                })
                 ->orderBy('updated_at', 'desc')
-                ->paginate(10);
+                ->paginate($request->per_page ?? 10);
         } else {
             // Return all users
-            $users = User::select('id', 'name', 'image', 'job_title')->get();
+            $users = User::select('id', 'name', 'image', 'job_title')
+                ->when($request->is_role, function ($query) {
+                    return $query->with('roles');
+                })->get();
         }
 
         return response()->json([

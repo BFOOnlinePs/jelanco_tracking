@@ -18,11 +18,6 @@ socketServer.on('connection', socket => {
         socketServer.emit('new-comment', data); // Broadcast to all clients
     });
 
-    socket.on('new-notification', (data) => {
-        console.log('New notification:', data);
-        socketServer.emit('new-notification', data); // Broadcast to all clients
-    });
-
     socket.on('disconnect', () => {
         console.log('A user disconnected');
     });

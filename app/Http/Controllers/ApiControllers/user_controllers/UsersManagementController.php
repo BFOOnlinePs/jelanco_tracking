@@ -4,11 +4,20 @@ namespace App\Http\Controllers\ApiControllers\user_controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\AuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class UsersManagementController extends Controller
 {
+    protected $authService;
+
+    public function __construct()
+    {
+        $this->authService = new AuthService();
+    }
+
+
     public function addUser(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -17,13 +26,16 @@ class UsersManagementController extends Controller
             'password' => 'required',
             'name' => 'required',
             'departments' => 'nullable|json',
+            'status' => 'required|in:active,not_active'
         ], [
             'email.unique' => 'البريد الإلكتروني موجود بالفعل',
             'phone.unique' => 'رقم الجوال موجود بالفعل',
             'email.required_without' => 'الرجاء كتابة البريد الإلكتروني او رقم الجوال',
             'phone.required_without' => 'الرجاء كتابة البريد الإلكتروني او رقم الجوال',
             'password.required' => 'الرجاء كتابة كلمة المرور',
-            'name.required' => 'الرجاء كتابة الاسم'
+            'name.required' => 'الرجاء كتابة الاسم',
+            'status.required' => 'الرجاء كتابة حالة الموظف',
+            'status.in' => 'الرجاء كتابة حالة الموظف بشكل صحيح'
         ]);
 
 
@@ -48,6 +60,7 @@ class UsersManagementController extends Controller
         $user->name = $request->input('name');
         $user->job_title = $request->input('job_title');
         $user->departments = $request->input('departments');
+        $user->user_status = $request->input('status');
 
         if ($user->save()) {
             return response([
@@ -58,6 +71,8 @@ class UsersManagementController extends Controller
         }
     }
 
+
+    /// todo: send the user_status
     public function updateUser(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
@@ -66,13 +81,16 @@ class UsersManagementController extends Controller
             // 'password' => 'required',
             'name' => 'required',
             'departments' => 'nullable|json',
+            'status' => 'required|in:active,not_active'
         ], [
             'email.unique' => 'البريد الإلكتروني موجود بالفعل',
             'phone.unique' => 'رقم الجوال موجود بالفعل',
             'email.required_without' => 'الرجاء كتابة البريد الإلكتروني او رقم الجوال',
             'phone.required_without' => 'الرجاء كتابة البريد الإلكتروني او رقم الجوال',
             // 'password.required' => 'الرجاء كتابة كلمة المرور',
-            'name.required' => 'الرجاء كتابة الاسم'
+            'name.required' => 'الرجاء كتابة الاسم',
+            'status.required' => 'الرجاء كتابة حالة الموظف',
+            'status.in' => 'الرجاء كتابة حالة الموظف بشكل صحيح'
         ]);
 
         if ($validator->fails()) {
@@ -98,6 +116,13 @@ class UsersManagementController extends Controller
         $user->name = $request->input('name');
         $user->job_title = $request->input('job_title');
         $user->departments = $request->input('departments');
+        $user->user_status = $request->input('status');
+
+        // if status is not active, then remove the token
+        if ($user->user_status != 'active') {
+           // auth service to removeTokens
+            $this->authService->removeTokens($user);
+        }
 
         if ($user->save()) {
             return response([

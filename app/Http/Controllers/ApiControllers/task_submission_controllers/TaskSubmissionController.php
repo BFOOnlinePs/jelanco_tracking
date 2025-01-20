@@ -19,7 +19,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use App\Services\FcmService as ServicesFcmService;
-
+use App\Services\SubmissionStatusService;
+use App\Services\TaskStatusService;
 
 class TaskSubmissionController extends Controller
 {
@@ -29,6 +30,8 @@ class TaskSubmissionController extends Controller
     protected $submissionService;
     protected $managerEmployeesService;
     protected $fcmService;
+    protected $taskStatusService;
+    protected $submissionStatusService;
 
     // Inject the FileUploadService, thumbnailService and MediaService into the controller
     public function __construct(
@@ -37,7 +40,9 @@ class TaskSubmissionController extends Controller
         MediaService $mediaService,
         SubmissionService $submissionService,
         ManagerEmployeesService $managerEmployeesService,
-        ServicesFcmService $fcmService
+        ServicesFcmService $fcmService,
+        TaskStatusService $taskStatusService,
+        SubmissionStatusService $submissionStatusService
     ) {
         $this->fileUploadService = $fileUploadService;
         $this->thumbnailService = $thumbnailService;
@@ -45,6 +50,8 @@ class TaskSubmissionController extends Controller
         $this->submissionService = $submissionService;
         $this->managerEmployeesService = $managerEmployeesService;
         $this->fcmService = $fcmService;
+        $this->taskStatusService = $taskStatusService;
+        $this->submissionStatusService = $submissionStatusService;
     }
 
 
@@ -166,7 +173,7 @@ class TaskSubmissionController extends Controller
         $task_submission->ts_start_longitude = $request->input('start_longitude');
         $task_submission->ts_actual_start_time = $request->input('start_time');
         $task_submission->ts_actual_end_time = $request->input('end_time');
-        $task_submission->ts_status = 'accepted'; // default
+        $task_submission->ts_status = 'inProgress'; // default
 
         if ($task_submission->save()) {
             // add the media ...
@@ -185,6 +192,12 @@ class TaskSubmissionController extends Controller
 
             if ($request->has('old_attachments')) {
                 $this->handleOldAttachments($request->old_attachments, $task_submission,);
+            }
+
+            // if the submission has task, update the task status
+            if ($task_submission->ts_task_id != -1) {
+                $task = TaskModel::where('t_id', $task_submission->ts_task_id)->first();
+                $this->taskStatusService->updateTaskStatus($task);
             }
 
             // $submission_media = $this->mediaService->getMedia('task_submissions', $task_submission->ts_id);
@@ -207,6 +220,7 @@ class TaskSubmissionController extends Controller
             Log::info('submissions:');
             Log::info('$task_submission->ts_parent_id ' . $task_submission->ts_task_id);
 
+            // if the submission has task, send the notification to the task creator
             if ($task_submission->ts_task_id != -1) {
                 // id of the user how added the task
                 $users_id = TaskModel::where('t_id', $task_submission->ts_task_id)
@@ -215,41 +229,48 @@ class TaskSubmissionController extends Controller
                     ->toArray();
 
                 $notification_title = $task_submission->ts_parent_id == -1 ? 'تم تسليم تكليف من قبل ' : 'تم تعديل تسليم من قبل ';
+            } else {
+                // if the submission has no task, send the notification to the managers of the submitter
+                $users_id = $this->managerEmployeesService->getManagersByEmployeeId(auth()->user()->id);
+                Log::info('managers: ' . json_encode($users_id));
 
-                // look for old notification for the submission, and change the type-id to the new submission id
-                // so the user will navigate to the last version
-                // for both submissions and comments
-                $old_submissions_notifications = NotificationModel::where('type', config('constants.notification_type.submission'))
-                    ->where('type_id', $request->input('parent_id'))
-                    // ->whereIn('type_id', $submissionIds) // Use whereIn to filter by multiple IDs
-
-                    ->get();
-
-                $old_comments_notifications = NotificationModel::where('type', config('constants.notification_type.comment'))
-                    ->where('type_id', $request->input('parent_id'))->get();
-
-                $old_notifications = $old_submissions_notifications->merge($old_comments_notifications);
-
-
-                foreach ($old_notifications as $notification) {
-                    $notification->type_id = $task_submission->ts_id;
-                    $notification->save();
-                }
-
-                try {
-                    if (!empty($users_id)) {
-                        $this->fcmService->sendNotification(
-                            $notification_title . auth()->user()->name,
-                            $task_submission->ts_content,
-                            $users_id,
-                            config('constants.notification_type.submission'),
-                            $task_submission->ts_id
-                        );
-                    }
-                } catch (\Throwable $th) {
-                    Log::error($th->getMessage());
-                }
+                $notification_title = $task_submission->ts_parent_id == -1 ? 'تم إضافة تسليم جديد من قبل ' : 'تم تعديل تسليم من قبل ';
             }
+
+
+            // look for old notification for the submission, and change the type-id to the new submission id
+            // so the user will navigate to the last version
+            // for both submissions and comments
+            $old_submissions_notifications = NotificationModel::where('type', config('constants.notification_type.submission'))
+                ->where('type_id', $request->input('parent_id'))
+                // ->whereIn('type_id', $submissionIds) // Use whereIn to filter by multiple IDs
+                ->get();
+
+            $old_comments_notifications = NotificationModel::where('type', config('constants.notification_type.comment'))
+                ->where('type_id', $request->input('parent_id'))->get();
+
+            $old_notifications = $old_submissions_notifications->merge($old_comments_notifications);
+
+
+            foreach ($old_notifications as $notification) {
+                $notification->type_id = $task_submission->ts_id;
+                $notification->save();
+            }
+
+            try {
+                if (!empty($users_id)) {
+                    $this->fcmService->sendNotification(
+                        $notification_title . auth()->user()->name,
+                        $task_submission->ts_content,
+                        $users_id,
+                        config('constants.notification_type.submission'),
+                        $task_submission->ts_id
+                    );
+                }
+            } catch (\Throwable $th) {
+                Log::error($th->getMessage());
+            }
+
 
             return response()->json([
                 'status' => true,
@@ -330,6 +351,10 @@ class TaskSubmissionController extends Controller
         if (SystemPermissions::hasPermission(SystemPermissions::VIEW_COMMENTS)) {
             $task_submission->submission_comments = $this->submissionService->getSubmissionComments($task_submission);
         }
+
+        // evaluations
+        $task_submission->evaluations = $this->submissionService->getSubmissionEvaluations($task_submission->ts_id);
+
 
 
         return response()->json([
@@ -438,5 +463,29 @@ class TaskSubmissionController extends Controller
             ],
             'submissions' => $submissions_with_tasks->values()
         ]);
+    }
+
+    public function updateSubmissionStatus(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'submission_id' => 'required|exists:task_submissions,ts_id',
+            'status' => 'required|in:accepted,rejected',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        $submission = TaskSubmissionsModel::where('ts_id', $request->input('submission_id'))->first();
+        $this->submissionStatusService->updateSubmissionStatus($submission, $request->input('status'));
+
+        return response()->json([
+            'status' => true,
+            'message' => 'تم تحديث حالة التسليم بنجاح',
+            'submission_status' => $submission->ts_status
+        ], 200);
     }
 }

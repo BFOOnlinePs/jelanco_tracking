@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use App\Services\FcmService as ServicesFcmService;
 use App\Services\FileUploadService;
+use App\Services\InterestedPartiesService;
+use App\Services\TaskStatusService;
 use App\Services\VideoThumbnailService;
 use Illuminate\Support\Facades\Storage;
 
@@ -26,19 +28,25 @@ class TaskController extends Controller
     protected $submissionService;
     protected $fcmService;
     protected $fileUploadService;
+    protected $interestedPartiesService;
+    protected $taskStatusService;
 
     public function __construct(
         FileUploadService $fileUploadService,
         VideoThumbnailService $thumbnailService,
         MediaService $mediaService,
         SubmissionService $submissionService,
-        ServicesFcmService $fcmService
+        ServicesFcmService $fcmService,
+        InterestedPartiesService $interestedPartiesService,
+        TaskStatusService $taskStatusService
     ) {
         $this->mediaService = $mediaService;
         $this->thumbnailService = $thumbnailService;
         $this->submissionService = $submissionService;
         $this->fcmService = $fcmService;
         $this->fileUploadService = $fileUploadService;
+        $this->interestedPartiesService = $interestedPartiesService;
+        $this->taskStatusService = $taskStatusService;
     }
 
     private function handleAttachmentsUpload($files, $task)
@@ -119,6 +127,10 @@ class TaskController extends Controller
             $task->assigned_to_users = User::whereIn('id', json_decode($task->t_assigned_to))->select('id', 'name', 'image')->get();
 
             $task->task_attachments_categories = $this->mediaService->getMedia('tasks', $task->t_id);
+
+            // add interested parties
+            $task->interested_parties = $this->interestedPartiesService->getInterestedParties('task', $task->t_id);
+
         } else {
             return response()->json([
                 'status' => false,
@@ -169,10 +181,11 @@ class TaskController extends Controller
                     $submission->submission_comments = $this->submissionService->getSubmissionComments($submission);
                 }
 
-
                 $submission_media = $this->mediaService->getMedia('task_submissions', $submission->ts_id);
 
                 $submission->submission_attachments_categories = $submission_media;
+
+                $submission->evaluations = $this->submissionService->getSubmissionEvaluations($submission->ts_id);
 
                 return $submission;
             });
@@ -198,6 +211,8 @@ class TaskController extends Controller
             'start_time' => 'nullable',
             'end_time' => 'nullable',
             'category_id' => 'nullable|exists:task_categories,c_id',
+            'interested_party_ids' => 'array',
+            'interested_party_ids.*' => 'integer|exists:users,id',
             'images.*' => 'image|mimes:jpg,png,jpeg,gif,svg',
             'videos.*' => 'mimetypes:video/mp4',
             'documents.*' => 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx',
@@ -227,7 +242,6 @@ class TaskController extends Controller
 
         if ($task->save()) {
             // add the media
-
             if ($request->hasFile('images')) {
                 $this->handleAttachmentsUpload($request->images, $task,);
             }
@@ -238,6 +252,11 @@ class TaskController extends Controller
 
             if ($request->hasFile('documents')) {
                 $this->handleAttachmentsUpload($request->documents, $task,);
+            }
+
+            // add interested parties
+            if ($request->interested_party_ids) {
+                $this->interestedPartiesService->addRemoveInterestedParties('task', $task->t_id, $request->interested_party_ids);
             }
 
             $task->added_by_user = User::where('id', $task->t_added_by)->select('id', 'name', 'image')->first();
@@ -287,7 +306,9 @@ class TaskController extends Controller
             'end_time' => 'nullable',
             'category_id' => 'nullable|exists:task_categories,c_id',
             'assigned_to' => 'required',
-            'status' => 'required|in:active,notActive',
+            'interested_party_ids' => 'array',
+            'interested_party_ids.*' => 'integer|exists:users,id',
+            // 'status' => 'required|in:active,notActive,canceled',
             'images.*' => 'image|mimes:jpg,png,jpeg,gif,svg',
             'videos.*' => 'mimetypes:video/mp4',
             'documents.*' => 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx',
@@ -323,10 +344,19 @@ class TaskController extends Controller
                 't_content' => $request->input('content'),
                 't_planed_start_time' => $request->input('start_time'),
                 't_planed_end_time' => $request->input('end_time'),
-                't_status' => $request->input('status'),
+                // 't_status' => $request->input('status'),
                 't_category_id' => $request->input('category_id'),
                 't_assigned_to' => $request->input('assigned_to'),
             ]);
+
+            // update status
+            $this->taskStatusService->updateTaskStatus($task, $request->input('status'));
+
+            // add interested parties
+            if ($request->interested_party_ids) {
+                $this->interestedPartiesService->addRemoveInterestedParties('task', $task->t_id, $request->interested_party_ids);
+            }
+
 
             // add the media ...
             // delete media except the old attachments

@@ -9,12 +9,14 @@ class LogoutController extends Controller
 {
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        try {
+            $request->user()->currentAccessToken()->delete();
+        } catch (\Exception $e) {
+        }
 
         return response([
             'status' => true,
             'message' => 'تم تسجيل الخروج بنجاح',
         ], 200);
     }
-
 }

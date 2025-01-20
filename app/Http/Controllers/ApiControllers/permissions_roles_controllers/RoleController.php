@@ -4,62 +4,157 @@ namespace App\Http\Controllers\ApiControllers\permissions_roles_controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
     // Get all roles
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Role::all());
+        if ($request->has('with_permissions') && $request->with_permissions) {
+            // Get roles with their permissions, ordered by id
+            $roles = Role::with('permissions')->orderBy('id')->get()->map(function ($role) {
+                return [
+                    'id' => $role->id,
+                    'name' => $role->name,
+                    'permissions' => $role->permissions->map(function ($permission) {
+                        return [
+                            'id' => $permission->id,
+                            'name' => $permission->name,
+                        ];
+                    }),
+                ];
+            });
+        } else {
+            // Get roles without permissions, ordered by id
+            $roles = Role::orderBy('id')->get(['id', 'name']);
+        }
+
+        return response()->json($roles);
     }
 
-    // Create a new role or update an existing role by name
+
+
+    public function getAllRolesWithPermissions()
+    {
+        $roles = Role::with('permissions')->get();
+
+        return response()->json(['roles' => $roles]);
+    }
+
+
+    // Create a new role
     public function store(Request $request)
     {
-        $request->validate(['name' => 'required']);
-        $role = Role::updateOrCreate(
-            ['name' => $request->name], // Match on name
-            ['guard_name' => 'web']
-        );
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|unique:roles,name',
+        ], [
+            'name.unique' => 'الدور :input موجود مسبقا',
+        ]);
 
-        return response()->json($role, 201);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(),
+            ]);
+        }
+
+        $role = Role::create([
+            'name' => $request->name,
+            'guard_name' => 'web'
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'تم إضافة الدور بنجاح',
+            'role' => $role
+        ], 201);
     }
 
-    // // Show a specific role
-    // public function show($id)
-    // {
-    //     $role = Role::findOrFail($id);
-    //     return response()->json($role);
-    // }
 
-    // // Update a role
-    // public function update(Request $request, $id)
-    // {
-    //     $role = Role::findOrFail($id);
-    //     $request->validate(['name' => 'required|unique:roles,name,' . $id]);
-    //     $role->update(['name' => $request->name, 'guard_name' => 'web']);
+    // Update a role
+    public function update(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|unique:roles,name,' . $id
+        ], [
+            'name.unique' => 'الدور :input موجود مسبقا',
+            'name.required' => 'الرجاء كتابة الاسم'
+        ]);
 
-    //     return response()->json($role);
-    // }
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(),
+            ]);
+        }
 
-    // // Delete a role
-    // public function destroy($id)
-    // {
-    //     $role = Role::findOrFail($id);
-    //     $role->delete();
+        $role = Role::find($id);
 
-    //     return response()->json(['message' => 'تم حذف الدور بنجاح']);
-    // }
+        if (!$role) {
+            return response()->json([
+                'status' => false,
+                'message' => 'الدور غير موجود',
+            ], 404);
+        }
 
-    // Assign permissions to a role (send all the selected with the old one)
-    public function assignPermissions(Request $request, $id)
+        $role->update([
+            'name' => $request->name
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'تم تعديل الدور بنجاح',
+            'role' => $role
+        ]);
+    }
+
+
+    public function destroy($id)
     {
         $role = Role::findOrFail($id);
-        $permissions = Permission::whereIn('name', $request->permissions)->get();
+
+        if (!$role) {
+            return response()->json([
+                'status' => false,
+                'message' => 'الدور غير موجود',
+            ], 404);
+        }
+
+        if ($role->delete()) {
+            return response()->json([
+                'status' => true,
+                'message' => 'تم حذف الدور بنجاح'
+            ]);
+        }
+
+        return response()->json([
+            'status' => false,
+            'message' => 'حدث خطأ أثناء حذف الدور',
+        ]);
+    }
+
+
+    // Assign permissions to a role (send all the selected with the old permissions)
+    public function assignPermissions(Request $request, $id)
+    {
+        $role = Role::find($id);
+
+        if (!$role) {
+            return response()->json([
+                'status' => false,
+                'message' => 'الدور غير موجود'
+            ]);
+        }
+
+        $permissions = Permission::whereIn('id', $request->permissionIds)->get();
         $role->syncPermissions($permissions);
 
-        return response()->json(['message' => 'تم تعيين صلاحيات الدور بنجاح']);
+        return response()->json([
+            'status' => true,
+            'message' => 'تم تحديث صلاحيات الدور بنجاح'
+        ]);
     }
 }
