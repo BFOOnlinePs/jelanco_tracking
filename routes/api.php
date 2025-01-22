@@ -143,12 +143,13 @@ Route::group(['middleware' => ['auth:sanctum', 'checkActive']], function () {
     // });
 
 
+
+    //        Mohamad Maraqa
     Route::group(['prefix' => 'users'], function () {
         Route::group(['prefix' => 'roles'], function () {
             Route::get('get_roles', [App\Http\Controllers\ApiControllers\roles_and_permissions\RolesController::class, 'get_roles']);
             Route::post('create', [App\Http\Controllers\ApiControllers\roles_and_permissions\RolesController::class, 'create']);
         });
-        //        Mohamad Maraqa
         Route::group(['prefix' => 'permissions'], function () {
             Route::get('get_permission', [App\Http\Controllers\ApiControllers\roles_and_permissions\PermissionController::class, 'get_permission']);
         });
