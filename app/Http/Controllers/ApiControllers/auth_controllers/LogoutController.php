@@ -9,10 +9,9 @@ class LogoutController extends Controller
 {
     public function logout(Request $request)
     {
-        try {
-            $request->user()->currentAccessToken()->delete();
-        } catch (\Exception $e) {
-        }
+
+        $request->user()->currentAccessToken()->delete();
+
 
         return response([
             'status' => true,
