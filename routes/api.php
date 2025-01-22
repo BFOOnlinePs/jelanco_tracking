@@ -31,7 +31,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-
 Route::post('/login', [LoginController::class, 'userLogin']);
 
 // FCM
@@ -39,29 +38,30 @@ Route::post('/storeFcmUserToken', [FcmController::class, 'storeFcmUserToken']);
 Route::post('/deleteFcmUserToken', [FcmController::class, 'deleteFcmUserToken']);
 Route::post('/updateFcmUserToken', [FcmController::class, 'updateFcmUserToken']);
 
-
 Route::group(['middleware' => ['auth:sanctum', 'checkActive']], function () {
     Route::post('logout', [LogoutController::class, 'logout']);
 
-    // tasks
-    Route::get('tasks', [TaskController::class, 'getAllTasks']);
-    Route::get('tasks/{id}/submissions-and-comments', [TaskController::class, 'getTaskWithSubmissionsAndComments']);
-    Route::post('tasks', [TaskController::class, 'addTask']);
-    Route::post('tasks/{id}', [TaskController::class, 'updateTask']);
-    Route::get('/tasks/added-by-user', [TaskAssignmentController::class, 'getTasksAddedByUser']);
-    Route::get('/tasks/assigned-to-user', [TaskAssignmentController::class, 'getTasksAssignedToUser']);
-    Route::get('/tasks/user-not-submitted-tasks', [TaskAssignmentController::class, 'getUserNotSubmittedTasks']);
-    Route::get('tasks/{id}', [TaskController::class, 'getTaskById']);
+    Route::prefix('tasks')->group(function () {
+        Route::get('/', [TaskController::class, 'getAllTasks']);
+        Route::get('{id}/submissions-and-comments', [TaskController::class, 'getTaskWithSubmissionsAndComments']);
+        Route::post('/', [TaskController::class, 'addTask']);
+        Route::post('{id}', [TaskController::class, 'updateTask']);
+        Route::get('added-by-user', [TaskAssignmentController::class, 'getTasksAddedByUser']);
+        Route::get('assigned-to-user', [TaskAssignmentController::class, 'getTasksAssignedToUser']);
+        Route::get('user-not-submitted-tasks', [TaskAssignmentController::class, 'getUserNotSubmittedTasks']);
+        Route::get('{id}', [TaskController::class, 'getTaskById']);
+    });
 
-    // tasks submissions
-    Route::post('task-submissions', [TaskSubmissionController::class, 'addTaskSubmission']);
-    Route::get('task-submissions/today', [TaskSubmissionController::class, 'getTodaysSubmissions']);
-    Route::get('task-submissions/{id}', [TaskSubmissionController::class, 'getTaskSubmission']);
-    Route::get('task-submissions/{id}/versions', [TaskSubmissionController::class, 'getTaskSubmissionVersions']);
-    Route::get('user-submissions', [TaskSubmissionController::class, 'getUserSubmissions']);
-    Route::get('task-submissions/{id}/task-and-comments', [TaskSubmissionController::class, 'getTaskSubmissionWithTaskAndComments']);
-    Route::post('task-submissions/evaluate', [SubmissionEvaluationController::class, 'evaluate']);
-    Route::post('task-submissions/update-status', [TaskSubmissionController::class, 'updateSubmissionStatus']);
+    Route::prefix('task-submissions')->group(function () {
+        Route::post('/', [TaskSubmissionController::class, 'addTaskSubmission']);
+        Route::get('today', [TaskSubmissionController::class, 'getTodaysSubmissions']);
+        Route::get('{id}', [TaskSubmissionController::class, 'getTaskSubmission']);
+        Route::get('{id}/versions', [TaskSubmissionController::class, 'getTaskSubmissionVersions']);
+        Route::get('user-submissions', [TaskSubmissionController::class, 'getUserSubmissions']);
+        Route::get('{id}/task-and-comments', [TaskSubmissionController::class, 'getTaskSubmissionWithTaskAndComments']);
+        Route::post('evaluate', [SubmissionEvaluationController::class, 'evaluate']);
+        Route::post('update-status', [TaskSubmissionController::class, 'updateSubmissionStatus']);
+    });
 
 
     // manager and employees
@@ -97,17 +97,19 @@ Route::group(['middleware' => ['auth:sanctum', 'checkActive']], function () {
     Route::get('task-submissions/{id}/comments', [CommentController::class, 'getSubmissionComments']);
     Route::get('task-submissions/{id}/comments/count', [CommentController::class, 'getSubmissionCommentCount']);
 
-    // interested parties
-    Route::get('interested-parties', [InterestedPartiesController::class, 'getInterestedParties']);
-    Route::post('interested-parties', [InterestedPartiesController::class, 'handleInterestedParties']);
-    Route::post('interested-parties/articles', [InterestedPartiesController::class, 'getArticlesOfInterest']);
+    Route::group(['prefix' => 'interested-parties'], function () {
+        Route::get('/', [InterestedPartiesController::class, 'getInterestedParties']);
+        Route::post('/', [InterestedPartiesController::class, 'handleInterestedParties']);
+        Route::post('articles', [InterestedPartiesController::class, 'getArticlesOfInterest']);
+    });
 
 
-    // notifications
-    Route::get('notifications', [NotificationController::class, 'getUserNotifications']);
-    Route::get('notifications/unread-count', [NotificationController::class, 'unreadNotificationsCount']);
-    Route::get('notifications/read/{notification_id}', [NotificationController::class, 'readNotification']);
-    Route::get('notifications/read-all', [NotificationController::class, 'readAll']);
+    Route::group(['prefix' => 'notifications'], function () {
+        Route::get('/', [NotificationController::class, 'getUserNotifications']);
+        Route::get('unread-count', [NotificationController::class, 'unreadNotificationsCount']);
+        Route::get('read/{notification_id}', [NotificationController::class, 'readNotification']);
+        Route::get('read-all', [NotificationController::class, 'readAll']);
+    });
 
 
     // Route::middleware(['role:admin'])->group(function () {
