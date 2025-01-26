@@ -57,12 +57,11 @@ Route::group(['middleware' => ['auth:sanctum', 'checkActive']], function () {
         Route::get('today', [TaskSubmissionController::class, 'getTodaysSubmissions']);
         Route::get('{id}', [TaskSubmissionController::class, 'getTaskSubmission']);
         Route::get('{id}/versions', [TaskSubmissionController::class, 'getTaskSubmissionVersions']);
-        Route::get('user-submissions', [TaskSubmissionController::class, 'getUserSubmissions']);
         Route::get('{id}/task-and-comments', [TaskSubmissionController::class, 'getTaskSubmissionWithTaskAndComments']);
         Route::post('evaluate', [SubmissionEvaluationController::class, 'evaluate']);
         Route::post('update-status', [TaskSubmissionController::class, 'updateSubmissionStatus']);
     });
-
+    Route::get('user-submissions', [TaskSubmissionController::class, 'getUserSubmissions']);
 
     // manager and employees
     Route::get('users/employees', [ManagerEmployeeController::class, 'getManagerEmployees']);
@@ -143,12 +142,13 @@ Route::group(['middleware' => ['auth:sanctum', 'checkActive']], function () {
     // });
 
 
+
+    //        Mohamad Maraqa
     Route::group(['prefix' => 'users'], function () {
         Route::group(['prefix' => 'roles'], function () {
             Route::get('get_roles', [App\Http\Controllers\ApiControllers\roles_and_permissions\RolesController::class, 'get_roles']);
             Route::post('create', [App\Http\Controllers\ApiControllers\roles_and_permissions\RolesController::class, 'create']);
         });
-        //        Mohamad Maraqa
         Route::group(['prefix' => 'permissions'], function () {
             Route::get('get_permission', [App\Http\Controllers\ApiControllers\roles_and_permissions\PermissionController::class, 'get_permission']);
         });
