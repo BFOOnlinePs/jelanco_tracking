@@ -57,12 +57,11 @@ Route::group(['middleware' => ['auth:sanctum', 'checkActive']], function () {
         Route::get('today', [TaskSubmissionController::class, 'getTodaysSubmissions']);
         Route::get('{id}', [TaskSubmissionController::class, 'getTaskSubmission']);
         Route::get('{id}/versions', [TaskSubmissionController::class, 'getTaskSubmissionVersions']);
-        Route::get('user-submissions', [TaskSubmissionController::class, 'getUserSubmissions']);
         Route::get('{id}/task-and-comments', [TaskSubmissionController::class, 'getTaskSubmissionWithTaskAndComments']);
         Route::post('evaluate', [SubmissionEvaluationController::class, 'evaluate']);
         Route::post('update-status', [TaskSubmissionController::class, 'updateSubmissionStatus']);
     });
-
+    Route::get('user-submissions', [TaskSubmissionController::class, 'getUserSubmissions']);
 
     // manager and employees
     Route::get('users/employees', [ManagerEmployeeController::class, 'getManagerEmployees']);
